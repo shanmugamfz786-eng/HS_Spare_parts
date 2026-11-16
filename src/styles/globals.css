@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ink: #090D18;
+  --color-ink-raised: #111827;
+  --color-ember: #F45A1B;
+  --color-ember-deep: #D94312;
+  --color-paper: #FFFFFF;
+  --color-mist: #F4F5F7;
+  --color-text: #171B24;
+  --color-muted: #6B7280;
+  --color-whatsapp: #20C76A;
+  --color-success: #16834A;
+  --color-danger: #C62828;
+  --color-border: #E5E7EB;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  *, ::before, ::after {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+}
+
+/* Custom utility classes */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ember hover:bg-ember-deep text-paper rounded-brand px-4 py-2.5;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ink-raised hover:bg-ink text-paper border border-gray-700 rounded-brand px-4 py-2.5;
+  }
+
+  .surface-card {
+    @apply bg-paper text-charcoal rounded-card border border-border shadow-card overflow-hidden;
+  }
+}
