@@ -9,11 +9,16 @@ export async function GET() {
 
   const status = dbHealth.connected || !process.env.DATABASE_URL ? "healthy" : "degraded";
 
+  // Log internal diagnostic error on server without leaking to public response
+  if (dbHealth.error && process.env.NODE_ENV !== "test") {
+    console.error("[Health Check] Database connectivity issue:", dbHealth.error);
+  }
+
   const responseBody = {
     status,
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(uptimeSeconds),
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV === "production" ? "production" : "development",
     version: "0.1.0",
     services: {
       application: {
@@ -21,8 +26,12 @@ export async function GET() {
       },
       database: {
         status: dbHealth.connected ? "connected" : dbHealth.error ? "disconnected" : "unconfigured",
-        latencyMs: dbHealth.latencyMs ?? null,
-        message: dbHealth.error ?? (dbHealth.connected ? "Neon PostgreSQL operational" : "DATABASE_URL not set in environment"),
+        latencyMs: dbHealth.connected ? dbHealth.latencyMs ?? null : null,
+        message: dbHealth.connected
+          ? "Database operational"
+          : dbHealth.error
+          ? "Database connection unavailable"
+          : "DATABASE_URL not configured",
       },
     },
   };
