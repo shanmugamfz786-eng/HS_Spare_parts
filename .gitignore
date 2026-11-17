@@ -41,6 +41,13 @@ pnpm-debug.log*
 .vercel
 .turbo
 
+# Local Database Files
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
 # Operating System & IDE Files
 .DS_Store
 *.pem

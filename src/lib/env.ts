@@ -19,6 +19,28 @@ const clientEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
 
+/**
+ * Resolves the authoritative AUTH_SECRET from the server environment.
+ * In production: strictly enforces that AUTH_SECRET is set with at least 32 characters; fails closed if missing.
+ * In development/test: uses AUTH_SECRET if configured, or a non-production ephemeral fallback if unset.
+ */
+export function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+
+  if (secret && secret.trim().length >= 32) {
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "CONFIGURATION_ERROR: AUTH_SECRET must be configured with at least 32 characters in production."
+    );
+  }
+
+  // Safe development/test fallback when local .env is unconfigured
+  return secret || "dev_test_ephemeral_auth_secret_minimum_32_chars_long";
+}
+
 function validateEnv(): ServerEnv & ClientEnv {
   // Validate client variables
   const parsedClient = clientEnvSchema.safeParse({

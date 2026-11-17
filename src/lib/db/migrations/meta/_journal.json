@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794825015990,
+      "tag": "0000_simple_baron_strucker",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794826662814,
+      "tag": "0001_tan_power_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794928264675,
+      "tag": "0002_wealthy_shaman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794933295682,
+      "tag": "0003_loud_rhino",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794934860128,
+      "tag": "0004_huge_dark_beast",
+      "breakpoints": true
+    }
+  ]
+}
