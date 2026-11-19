@@ -51,7 +51,7 @@ export default function ProfilePage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-24 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-ember mx-auto mb-3" />
-        <p className="text-xs text-gray-400">Loading profile details...</p>
+        <p className="text-xs text-gray-500">Loading profile details...</p>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-xs text-gray-400 mb-4">Please sign in to access your profile.</p>
+        <p className="text-xs text-gray-500 mb-4">Please sign in to access your profile.</p>
         <Link href="/account" className="btn-primary py-2 px-4 text-xs font-semibold">
           Go to Sign In
         </Link>
@@ -72,29 +72,29 @@ export default function ProfilePage() {
       <div className="mb-6">
         <Link
           href="/account"
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ember transition-colors mb-3"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-ember transition-colors mb-3"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Account</span>
         </Link>
-        <h1 className="text-2xl sm:text-3xl font-black text-paper tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
           Personal Profile
         </h1>
       </div>
 
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-6 sm:p-8 shadow-xl">
+      <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 sm:p-8">
         {statusMessage && (
           <div
-            className={`mb-6 p-3.5 rounded-brand flex items-center gap-2 text-xs ${
+            className={`mb-6 p-3.5 rounded-lg flex items-center gap-2 text-xs ${
               statusMessage.type === "success"
-                ? "bg-green-950/30 border border-green-800 text-green-300"
-                : "bg-red-950/30 border border-red-800 text-red-300"
+                ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                : "bg-red-50 border border-red-200 text-red-700"
             }`}
           >
             {statusMessage.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
             )}
             <span>{statusMessage.text}</span>
           </div>
@@ -103,23 +103,23 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email (Read-Only) */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1">
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
               Email Address (Immutable)
             </label>
             <input
               type="email"
               disabled
               value={profile.email}
-              className="w-full bg-ink/50 border border-gray-800 rounded px-3 py-2 text-xs text-gray-400 font-mono cursor-not-allowed"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 font-mono cursor-not-allowed"
             />
-            <span className="text-[10px] text-gray-400 block mt-1">
+            <span className="text-[10px] text-gray-500 block mt-1">
               Email address is permanently bound to this account.
             </span>
           </div>
 
           {/* Full Name */}
           <div>
-            <label htmlFor="name-input" className="block text-xs font-semibold text-gray-300 mb-1">
+            <label htmlFor="name-input" className="block text-xs font-semibold text-gray-700 mb-1">
               Full Name
             </label>
             <input
@@ -128,13 +128,13 @@ export default function ProfilePage() {
               required
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
-              className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
             />
           </div>
 
           {/* Phone Number */}
           <div>
-            <label htmlFor="phone-input" className="block text-xs font-semibold text-gray-300 mb-1">
+            <label htmlFor="phone-input" className="block text-xs font-semibold text-gray-700 mb-1">
               Mobile Phone (10 Digits)
             </label>
             <input
@@ -143,14 +143,14 @@ export default function ProfilePage() {
               placeholder="9876543210"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
-              className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+              className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
             />
-            <span className="text-[10px] text-gray-400 block mt-1">
+            <span className="text-[10px] text-gray-500 block mt-1">
               Used for courier delivery updates and dispatch notices.
             </span>
           </div>
 
-          <div className="pt-4 border-t border-gray-800 flex items-center justify-between">
+          <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
             <Link href="/account" className="btn-secondary py-2 px-4 text-xs font-semibold">
               Cancel
             </Link>

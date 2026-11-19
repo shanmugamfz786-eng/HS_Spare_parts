@@ -2,7 +2,7 @@
 
 import React, { useTransition } from "react";
 import Link from "next/link";
-import { Trash2, AlertTriangle, PackageX, Minus, Plus, Loader2 } from "lucide-react";
+import { Trash2, AlertTriangle, PackageX, Minus, Plus, Loader2, Wrench } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 import type { CartItemDTO } from "@/features/cart/schemas";
 
@@ -39,85 +39,94 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
 
   return (
     <div
-      className={`p-4 sm:p-5 rounded-card bg-ink-raised border transition-all ${
+      className={`p-4 sm:p-5 rounded-xl bg-white border transition-all shadow-xs ${
         !item.inStock
-          ? "border-red-900/60 bg-red-950/10"
+          ? "border-red-300 bg-red-50/30"
           : item.hasStockWarning
-          ? "border-amber-700/50 bg-amber-950/10"
-          : "border-gray-800 hover:border-gray-700"
+          ? "border-amber-300 bg-amber-50/30"
+          : "border-gray-200/90 hover:border-gray-300 hover:shadow-sm"
       }`}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* Left: Product Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-ink border border-gray-700 text-gray-300">
-              {item.sku}
-            </span>
-            {item.isDemo && (
-              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
-                Demo Preview
-              </span>
-            )}
-            {!item.inStock && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
-                <PackageX className="w-3 h-3" />
-                <span>Out of Stock</span>
-              </span>
-            )}
+        {/* Left: Thumbnail & Part Identity */}
+        <div className="flex items-start gap-3.5 flex-1 min-w-0">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-500 shadow-inner">
+            <Wrench className="w-6 h-6 text-gray-400" />
           </div>
 
-          <h3 className="text-sm sm:text-base font-bold text-paper truncate">
-            <Link href={`/products/${item.productId}`} className="hover:text-ember transition-colors">
-              {item.name}
-            </Link>
-          </h3>
-
-          <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
-            <span>Unit Price: <span className="text-paper font-semibold">{formatMoney(item.priceMinor)}</span></span>
-          </div>
-
-          {/* Stock Warning Notice */}
-          {item.hasStockWarning && item.stockWarningMessage && (
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{item.stockWarningMessage}</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-ember">
+                {item.brand}
+              </span>
+              <span className="text-gray-300">•</span>
+              <span className="text-[10px] font-mono text-gray-500">
+                SKU: {item.sku}
+              </span>
             </div>
-          )}
+
+            <h3 className="text-sm font-bold text-gray-900 truncate">
+              <Link
+                href={`/products/${item.productId}`}
+                className="hover:text-ember transition-colors"
+              >
+                {item.name}
+              </Link>
+            </h3>
+
+            {/* Stock Warnings */}
+            {!item.inStock ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 mt-1">
+                <PackageX className="w-3.5 h-3.5" />
+                <span>Currently Out of Stock — Please remove to checkout</span>
+              </span>
+            ) : item.hasStockWarning ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 mt-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Low inventory ({item.availableStock} remaining)</span>
+              </span>
+            ) : (
+              <span className="text-[11px] text-green-700 font-semibold block mt-0.5">
+                In Stock — Express Dispatch Ready
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Right: Quantity Stepper & Pricing */}
-        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-6">
-          {/* Stepper */}
-          <div className="flex items-center border border-gray-700 rounded-brand bg-ink">
+        {/* Right: Quantity Stepper, Price & Remove Action */}
+        <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-0 border-gray-100">
+          {/* Quantity Controls */}
+          <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50 p-1">
             <button
               type="button"
               onClick={handleDecrement}
-              disabled={isPending || item.quantity <= 1}
+              disabled={isPending || item.quantity <= 1 || !item.inStock}
+              className="w-7 h-7 rounded bg-white border border-gray-200 flex items-center justify-center text-gray-700 hover:border-ember disabled:opacity-40 transition-colors shadow-2xs"
               aria-label="Decrease quantity"
-              className="p-1.5 text-gray-300 hover:text-paper hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="px-3 text-xs font-bold text-paper font-mono min-w-[2rem] text-center">
-              {isPending ? <Loader2 className="w-3 h-3 animate-spin mx-auto text-ember" /> : item.quantity}
+            <span className="w-8 text-center text-xs font-black text-gray-900">
+              {item.quantity}
             </span>
             <button
               type="button"
               onClick={handleIncrement}
-              disabled={isPending || item.quantity >= 10 || (item.availableStock > 0 && item.quantity >= item.availableStock)}
+              disabled={isPending || item.quantity >= 10 || !item.inStock}
+              className="w-7 h-7 rounded bg-white border border-gray-200 flex items-center justify-center text-gray-700 hover:border-ember disabled:opacity-40 transition-colors shadow-2xs"
               aria-label="Increase quantity"
-              className="p-1.5 text-gray-300 hover:text-paper hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Line Total */}
-          <div className="text-right min-w-[5.5rem]">
-            <span className="text-xs text-gray-400 block sm:hidden">Total</span>
-            <span className="text-sm sm:text-base font-black text-paper font-mono">
+          {/* Pricing */}
+          <div className="text-right min-w-[90px]">
+            <span className="text-base font-black text-gray-900 block">
               {formatMoney(item.lineTotalMinor)}
+            </span>
+            <span className="text-[10px] text-gray-500 block">
+              {formatMoney(item.priceMinor)} each
             </span>
           </div>
 
@@ -126,11 +135,11 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
             type="button"
             onClick={handleRemove}
             disabled={isPending}
-            aria-label={`Remove ${item.name} from cart`}
+            className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-40"
             title="Remove item"
-            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-950/20 rounded-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember"
+            aria-label={`Remove ${item.name}`}
           >
-            <Trash2 className="w-4 h-4" />
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin text-gray-400" /> : <Trash2 className="w-4 h-4" />}
           </button>
         </div>
       </div>

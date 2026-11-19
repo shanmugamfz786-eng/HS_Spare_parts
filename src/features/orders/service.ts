@@ -6,6 +6,7 @@ import {
   orderItems,
   orderStatusHistory,
   stockReservations,
+  shipments,
   carts,
   cartItems,
   products,
@@ -48,8 +49,11 @@ export function generatePublicOrderReference(): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatOrderDetailDTO(orderRecord: any): OrderDetailDTO {
+function formatOrderDetailDTO(orderRecord: any, shipmentList: any[] = []): OrderDetailDTO {
   const address = orderRecord.shippingAddressSnapshot as AddressSnapshotDTO;
+  const currentShipments =
+    shipmentList.length > 0 ? shipmentList : (orderRecord.shipments || []);
+  const latestShipment = currentShipments[0] || null;
 
   return {
     id: orderRecord.id,
@@ -85,11 +89,32 @@ function formatOrderDetailDTO(orderRecord: any): OrderDetailDTO {
       timestamp: h.createdAt instanceof Date ? h.createdAt.toISOString() : new Date(h.createdAt).toISOString(),
     })),
     tracking: {
-      hasLiveTracking: false,
-      carrier: null,
-      trackingNumber: null,
-      message:
-        "Order created. Shipment carrier dispatch and live waybill tracking integration will be active upon fulfilment partner dispatch in Phase 7.",
+      hasLiveTracking: Boolean(latestShipment),
+      carrier: latestShipment?.carrier || null,
+      trackingNumber: latestShipment?.trackingNumber || null,
+      trackingUrl: latestShipment?.trackingUrl || null,
+      status: latestShipment?.status || null,
+      shippedAt: latestShipment?.shippedAt
+        ? (latestShipment.shippedAt instanceof Date
+            ? latestShipment.shippedAt.toISOString()
+            : new Date(latestShipment.shippedAt).toISOString())
+        : null,
+      deliveredAt: latestShipment?.deliveredAt
+        ? (latestShipment.deliveredAt instanceof Date
+            ? latestShipment.deliveredAt.toISOString()
+            : new Date(latestShipment.deliveredAt).toISOString())
+        : null,
+      message: latestShipment
+        ? `Shipment dispatched via ${latestShipment.carrier}. Tracking AWB: ${latestShipment.trackingNumber}`
+        : "Order placed. Your items are being prepared for dispatch. Live tracking will be visible here once handed over to the courier partner.",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      milestones: currentShipments.map((s: any) => ({
+        status: s.status,
+        description: `Shipment marked as ${s.status} via ${s.carrier}.`,
+        timestamp: (s.deliveredAt || s.shippedAt || s.createdAt instanceof Date
+          ? s.createdAt.toISOString()
+          : new Date(s.createdAt).toISOString()),
+      })),
     },
   };
 }
@@ -437,6 +462,36 @@ export const defaultDrizzleOrderStore: OrderStorageAdapter = {
   },
 };
 
+export const ONLINE_ORDERING_DISABLED_MESSAGE =
+  "Online ordering is currently being prepared. You can continue browsing products and adding items to your cart.";
+
+/**
+ * Determines whether customer online order placement is permitted.
+ * - In development/test: permitted for test suites and development testing.
+ * - In production: strictly prohibited until live payment gateway (never mock)
+ *   and verified courier partner integrations are fully integrated and activated.
+ */
+export function isOnlineOrderingEnabled(): boolean {
+  const isDevOrTest = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  if (isDevOrTest) {
+    return true;
+  }
+
+  // Production: Mock payment or unconfigured payment strictly blocks order creation
+  const paymentProvider = process.env.PAYMENT_PROVIDER;
+  if (!paymentProvider || paymentProvider === "mock") {
+    return false;
+  }
+
+  const hasPaymentKey = Boolean(process.env.PAYMENT_SECRET_KEY?.trim());
+  if (!hasPaymentKey) {
+    return false;
+  }
+
+  // Until real payment and courier integrations are live and confirmed, order placement is paused
+  return false;
+}
+
 /**
  * Creates an order atomically inside a PostgreSQL transaction.
  * Revalidates prices, products, variants, and atomically reserves inventory.
@@ -447,6 +502,10 @@ export async function createOrder(
   rawInput: CreateOrderInput,
   store: OrderStorageAdapter = defaultDrizzleOrderStore
 ): Promise<OrderDetailDTO> {
+  if (!isOnlineOrderingEnabled()) {
+    throw new Error(`ORDERING_DISABLED: ${ONLINE_ORDERING_DISABLED_MESSAGE}`);
+  }
+
   if (!customerId) {
     throw new Error("UNAUTHENTICATED: You must be signed in to place an order.");
   }
@@ -732,6 +791,9 @@ export async function getOrderById(customerId: string, orderId: string): Promise
       statusHistory: {
         orderBy: desc(orderStatusHistory.createdAt),
       },
+      shipments: {
+        orderBy: desc(shipments.createdAt),
+      },
     },
   });
 
@@ -739,7 +801,7 @@ export async function getOrderById(customerId: string, orderId: string): Promise
     throw new Error("ORDER_NOT_FOUND: Order not found or you do not have permission to view it.");
   }
 
-  return formatOrderDetailDTO(orderRecord);
+  return formatOrderDetailDTO(orderRecord, orderRecord.shipments || []);
 }
 
 /**
@@ -762,6 +824,9 @@ export async function getOrderByReference(customerId: string, orderReference: st
       statusHistory: {
         orderBy: desc(orderStatusHistory.createdAt),
       },
+      shipments: {
+        orderBy: desc(shipments.createdAt),
+      },
     },
   });
 
@@ -769,7 +834,7 @@ export async function getOrderByReference(customerId: string, orderReference: st
     throw new Error("ORDER_NOT_FOUND: Order not found or you do not have permission to view it.");
   }
 
-  return formatOrderDetailDTO(orderRecord);
+  return formatOrderDetailDTO(orderRecord, orderRecord.shipments || []);
 }
 
 /**

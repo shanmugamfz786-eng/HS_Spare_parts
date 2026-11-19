@@ -36,7 +36,7 @@ export function Header() {
           <div className="hidden sm:flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-gray-300">
               <ShieldCheck className="w-3.5 h-3.5 text-ember" />
-              <span>Genuine OES & OEM Parts Standards</span>
+              <span>OEM &amp; OES Parts Standards</span>
             </span>
             <span className="text-gray-700">|</span>
             <span className="flex items-center gap-1.5 text-gray-300">
@@ -76,6 +76,13 @@ export function Header() {
               className="text-gray-300 hover:text-ember transition-colors hidden sm:inline"
             >
               Track Order
+            </Link>
+            <span className="text-gray-700 hidden sm:inline">|</span>
+            <Link
+              href="/admin/products"
+              className="text-gray-400 hover:text-ember transition-colors hidden sm:inline"
+            >
+              Admin
             </Link>
           </div>
         </div>

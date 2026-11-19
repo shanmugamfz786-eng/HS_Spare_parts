@@ -34,7 +34,7 @@ export function SortSelector({ currentSort = "relevance", basePath }: SortSelect
     <div className="flex items-center gap-2">
       <label
         htmlFor="catalogue-sort"
-        className="text-xs text-gray-400 font-medium flex items-center gap-1 cursor-pointer"
+        className="text-xs text-gray-600 font-medium flex items-center gap-1 cursor-pointer"
       >
         <ArrowUpDown className="w-3.5 h-3.5 text-ember" />
         <span className="hidden sm:inline">Sort:</span>
@@ -43,7 +43,7 @@ export function SortSelector({ currentSort = "relevance", basePath }: SortSelect
         id="catalogue-sort"
         value={currentSort}
         onChange={(e) => handleSortChange(e.target.value)}
-        className="bg-ink-raised border border-gray-700 text-paper text-xs rounded px-2.5 py-1.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember cursor-pointer"
+        className="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember cursor-pointer font-medium"
       >
         {SORT_OPTIONS.map((opt) => (
           <option key={opt} value={opt}>

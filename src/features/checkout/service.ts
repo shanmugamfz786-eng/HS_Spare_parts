@@ -65,9 +65,9 @@ export async function validateCheckoutAddressServiceability(
     throw new Error("INVALID_POSTAL_CODE: Address has an invalid 6-digit Indian PIN code.");
   }
 
-  // Phase 6 boundary: Shipping partner APIs (Delhivery/Shiprocket) belong to Phase 7.
-  // Unless promotional complimentary shipping is active, mark unconfigured and unserviceable.
-  const isPromoEnabled = process.env.ALLOW_FREE_SHIPPING_PROMO === "true";
+  // In production, online ordering and courier dispatch remain paused until live integrations are enabled.
+  const isDevOrTest = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  const isPromoEnabled = isDevOrTest && process.env.ALLOW_FREE_SHIPPING_PROMO === "true";
   const serviceability: DeliveryServiceabilityDTO = isPromoEnabled
     ? {
         isConfigured: true,
@@ -75,7 +75,7 @@ export async function validateCheckoutAddressServiceability(
         carrier: "Standard Surface Delivery (Complimentary)",
         estimatedDays: 4,
         shippingFeeMinor: 0,
-        message: "Standard Surface Delivery across India (Phase 6 Promotional Active).",
+        message: "Standard surface road delivery across India.",
       }
     : {
         isConfigured: false,
@@ -84,7 +84,7 @@ export async function validateCheckoutAddressServiceability(
         estimatedDays: null,
         shippingFeeMinor: 0,
         message:
-          "Shipping carrier integrations are not configured for Phase 6. Order placement is paused until shipping is activated in Phase 7.",
+          "Online ordering is currently being prepared. You can continue browsing products and adding items to your cart.",
       };
 
   return { address, serviceability };

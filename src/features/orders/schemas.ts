@@ -74,7 +74,16 @@ export interface OrderDetailDTO {
     hasLiveTracking: boolean;
     carrier: string | null;
     trackingNumber: string | null;
+    trackingUrl?: string | null;
+    status?: string | null;
+    shippedAt?: string | null;
+    deliveredAt?: string | null;
     message: string;
+    milestones?: Array<{
+      status: string;
+      description: string;
+      timestamp: string;
+    }>;
   };
 }
 

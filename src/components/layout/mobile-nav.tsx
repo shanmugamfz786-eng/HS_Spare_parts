@@ -6,7 +6,6 @@ import {
   X,
   ChevronDown,
   Sparkles,
-  ExternalLink,
   Search,
   Truck,
   Heart,
@@ -126,18 +125,15 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 if (category.isDirectLink) {
                   return (
                     <li key={category.id}>
-                      <a
-                        href={category.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-brand text-amber-400 bg-ember/10 hover:bg-ember/20 transition-colors"
-                      >
+                      <div className="flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-brand text-amber-400 bg-ember/10 cursor-default select-none">
                         <span className="flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                           <span>{category.name}</span>
                         </span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                      </a>
+                        <span className="text-[10px] text-amber-300/80 font-medium tracking-normal normal-case">
+                          Warehouse Deals
+                        </span>
+                      </div>
                     </li>
                   );
                 }

@@ -3,26 +3,34 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Star,
   CheckCircle2,
   ShoppingCart,
   Heart,
-  Eye,
-  Info,
   ArrowRight,
 } from "lucide-react";
 import { DEMO_FEATURED_PRODUCTS, DemoProduct } from "@/lib/constants/demo-catalog";
 import { formatMoney } from "@/lib/money";
 
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  "demo-brembo-pads": "/images/brakes.jpg",
+  "demo-gabriel-shockers": "/images/suspension.jpg",
+  "demo-valeo-clutch": "/images/transmission.jpg",
+  "demo-bosch-spark-plugs": "/images/electrical.jpg",
+  "demo-denso-radiator": "/images/cooling.jpg",
+  "demo-lumax-headlight": "/images/body.jpg",
+  "demo-mann-filters": "/images/accessories.jpg",
+  "demo-bosch-wipers": "/images/accessories.jpg",
+};
+
 export function FeaturedProducts() {
-  const [interactiveToast, setInteractiveToast] = useState<string | null>(null);
   const [previewWishlist, setPreviewWishlist] = useState<Set<string>>(new Set());
+  const [interactiveToast, setInteractiveToast] = useState<string | null>(null);
 
   const handlePreviewAddToCart = (product: DemoProduct) => {
     setInteractiveToast(product.name);
     setTimeout(() => {
       setInteractiveToast(null);
-    }, 3000);
+    }, 3500);
   };
 
   const togglePreviewWishlist = (productId: string) => {
@@ -37,184 +45,317 @@ export function FeaturedProducts() {
     });
   };
 
+  const newProducts = DEMO_FEATURED_PRODUCTS.filter((p) => p.condition === "new");
+  const usedProducts = DEMO_FEATURED_PRODUCTS.filter((p) => p.condition === "used");
+
   return (
-    <section className="py-16 bg-ink border-b border-gray-800" aria-labelledby="featured-parts-heading">
+    <section id="catalogue-sections" className="py-14 sm:py-20 bg-[#090D18] text-white border-t border-b border-gray-800 space-y-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-              <Info className="w-4 h-4 text-amber-400" />
-              <span>UI Layout Showcase (Sample Specifications)</span>
-            </div>
-            <h2 id="featured-parts-heading" className="text-2xl sm:text-3xl font-black text-paper tracking-tight">
-              Featured Parts Preview
-            </h2>
-            <p className="text-sm text-gray-400 mt-1 max-w-xl">
-              Representative catalogue layout demonstrating part cards, sample specifications, and monetary display formats.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-semibold text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-pill border border-amber-500/30">
-              Demo Preview Only — Not Live Stock
-            </span>
-          </div>
-        </div>
-
-        {/* Clear Demo Notice Banner */}
-        <div className="mb-8 p-3.5 rounded-brand bg-ink-raised border border-amber-500/30 text-amber-200/90 text-xs flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-          <span className="leading-relaxed">
-            <strong>Demonstration Notice:</strong> The items below are sample specifications for layout verification. Real inventory, live stock availability, and verified pricing will connect from the PostgreSQL catalogue in Phase 5.
-          </span>
-        </div>
-
         {/* Interactive Preview Feedback Banner */}
         {interactiveToast && (
-          <div className="mb-6 p-4 rounded-brand bg-ink-raised border border-ember/40 text-paper text-xs font-semibold flex items-center justify-between animate-in fade-in duration-200">
+          <div className="mb-8 p-3 rounded-xl bg-ember/20 border border-ember/40 text-ember-200 text-xs flex items-center justify-between animate-fadeIn">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-ember flex-shrink-0" />
               <span>
-                <strong>Interactive Preview:</strong> Add-to-cart triggered for &ldquo;{interactiveToast}&rdquo;. Real cart server actions connect in Phase 7.
+                Item added to cart preview: <strong className="text-white">&ldquo;{interactiveToast}&rdquo;</strong>.
               </span>
             </div>
-            <Link href="/cart" className="underline font-bold text-ember hover:text-paper ml-4 whitespace-nowrap">
-              View Cart Preview →
+            <Link
+              href="/cart"
+              className="text-xs font-bold underline hover:text-white"
+            >
+              View Preview Cart &rarr;
             </Link>
           </div>
         )}
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {DEMO_FEATURED_PRODUCTS.map((product) => {
-            const isWishlisted = previewWishlist.has(product.id);
+        {/* =========================================================================
+            SECTION 1: NEW SPARE PARTS
+            ========================================================================= */}
+        <div id="new-spare-parts" className="space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-gray-800">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Factory New Inventory</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                New Spare Parts
+              </h2>
+              <p className="text-sm text-gray-400 mt-1 max-w-xl">
+                Brand new, unused OEM and aftermarket replacement components in original packaging.
+              </p>
+            </div>
 
-            return (
-              <div
-                key={product.id}
-                className="surface-card bg-paper text-charcoal rounded-card border border-border shadow-card hover:shadow-xl transition-all flex flex-col justify-between group overflow-hidden"
-              >
-                {/* Product Card Top: Visual Area */}
-                <div className="relative bg-mist p-6 flex items-center justify-center min-h-[190px] border-b border-border/80">
-                  <div className="absolute top-3 left-3 flex flex-col gap-1 items-start z-10">
-                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-ink text-paper shadow-sm">
-                      {product.badge || "Demo Part"}
-                    </span>
-                    {product.discountPercentage && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-ember text-paper shadow-sm">
-                        Sample {product.discountPercentage}% Off
+            <Link
+              href="/search?condition=new"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors group"
+            >
+              <span>Explore All New Parts</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {newProducts.map((product) => {
+              const isWishlisted = previewWishlist.has(product.id);
+              const discountPercentage =
+                product.originalPriceMinor && product.originalPriceMinor > product.priceMinor
+                  ? Math.round(
+                      ((product.originalPriceMinor - product.priceMinor) / product.originalPriceMinor) * 100
+                    )
+                  : 0;
+
+              const productImage = PRODUCT_IMAGE_MAP[product.id] || "/images/brakes.jpg";
+
+              return (
+                <div
+                  key={product.id}
+                  className="bg-[#121826] rounded-2xl border border-gray-800/90 hover:border-emerald-500/50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                >
+                  {/* Product Image Stage */}
+                  <div className="relative aspect-[4/3] bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800">
+                    <img
+                      src={productImage}
+                      alt={product.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent pointer-events-none" />
+
+                    {/* Condition Badge Top Left */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1 items-start z-10">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-md shadow-xs backdrop-blur-md">
+                        NEW
                       </span>
-                    )}
-                  </div>
-
-                  {/* Wishlist Preview Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => togglePreviewWishlist(product.id)}
-                    aria-label={`Toggle sample wishlist for ${product.name}`}
-                    className={`absolute top-3 right-3 p-1.5 rounded-full bg-paper/90 backdrop-blur border border-border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
-                      isWishlisted ? "text-ember" : "text-gray-400 hover:text-ember"
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current text-ember" : ""}`} />
-                  </button>
-
-                  <div className="w-28 h-28 rounded-card bg-paper border border-border/60 shadow-sm flex flex-col items-center justify-center p-3 text-center group-hover:scale-105 transition-transform duration-200">
-                    <span className="text-[10px] font-bold uppercase text-muted tracking-wider block">
-                      {product.brand}
-                    </span>
-                    <span className="text-xs font-black text-charcoal block mt-1">
-                      {product.sku}
-                    </span>
-                    <span className="text-[9px] text-gray-400 block mt-1 truncate max-w-full">
-                      {product.categoryName}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Product Content Body */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-muted mb-1">
-                      <span className="font-bold text-charcoal uppercase tracking-wider">
+                      <span className="text-[9px] font-bold text-gray-300 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded border border-gray-700">
                         {product.brand}
                       </span>
-                      <span>{product.sku}</span>
                     </div>
 
-                    <h3 className="text-xs sm:text-sm font-bold text-charcoal line-clamp-2 leading-snug group-hover:text-ember transition-colors mb-2">
-                      <Link href={`/products/${product.id}`}>{product.name}</Link>
-                    </h3>
-
-                    <div className="bg-mist p-2 rounded-brand text-[11px] text-charcoal border border-border/60 mb-3 flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 text-muted flex-shrink-0 mt-0.5" />
-                      <span className="font-medium line-clamp-1">{product.fitmentHint}</span>
-                    </div>
-
-                    {/* Ratings with Sample Data label */}
-                    <div className="flex items-center gap-1.5 mb-3 text-xs">
-                      <div className="flex items-center text-amber-500">
-                        <Star className="w-3.5 h-3.5 fill-current" />
+                    {discountPercentage > 0 && (
+                      <div className="absolute bottom-3 right-3 z-10 bg-emerald-500 text-black text-[10px] font-black px-2 py-0.5 rounded-md shadow">
+                        Save {discountPercentage}%
                       </div>
-                      <span className="font-bold text-charcoal text-xs">{product.sampleRating}</span>
-                      <span className="text-[11px] text-muted">
-                        (Sample score • {product.sampleReviewCount} demo reviews)
-                      </span>
-                    </div>
+                    )}
+
+                    {/* Wishlist Button */}
+                    <button
+                      type="button"
+                      onClick={() => togglePreviewWishlist(product.id)}
+                      aria-label={`Add ${product.name} to preview wishlist`}
+                      className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        isWishlisted
+                          ? "bg-emerald-500 text-white"
+                          : "bg-black/60 text-gray-300 hover:text-white hover:bg-black/80"
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+                    </button>
                   </div>
 
-                  {/* Pricing and Action Button */}
-                  <div className="pt-3 border-t border-border/80">
-                    <div className="flex items-baseline justify-between mb-3">
-                      <div>
-                        <span className="text-base sm:text-lg font-black text-charcoal">
+                  {/* Product Content Details */}
+                  <div className="p-5 flex flex-col flex-1 justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+                        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                          {product.categorySlug.replace("-", " ")}
+                        </span>
+                        <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                          Brand New
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-2 mb-2 leading-snug">
+                        <Link href={`/products/${product.id}`} className="focus:outline-none">
+                          {product.name}
+                        </Link>
+                      </h3>
+
+                      <div className="space-y-1 mb-4 text-[11px] text-gray-400">
+                        <p className="font-mono">
+                          SKU: <span className="text-gray-300">{product.sku}</span>
+                        </p>
+                        <p className="line-clamp-1">
+                          Fits: <span className="text-gray-300">{product.fitmentHint}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Pricing and Add to Cart Action */}
+                    <div className="pt-4 border-t border-gray-800/90">
+                      <div className="flex items-baseline gap-2 mb-3">
+                        <span className="text-lg font-black text-white">
                           {formatMoney(product.priceMinor)}
                         </span>
                         {product.originalPriceMinor && (
-                          <span className="text-xs text-muted line-through ml-2">
+                          <span className="text-xs text-gray-500 line-through">
                             {formatMoney(product.originalPriceMinor)}
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        Demo Layout
-                      </span>
-                    </div>
 
-                    <div className="grid grid-cols-4 gap-2">
                       <button
                         type="button"
                         onClick={() => handlePreviewAddToCart(product)}
-                        className="col-span-3 btn-primary py-2 text-xs font-bold gap-1.5 shadow-sm"
-                        title="Interactive UI Preview"
+                        className="w-full btn-primary py-2.5 px-3 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all"
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
-                        <span>Preview Add to Cart</span>
+                        <span>Add to Cart</span>
                       </button>
-                      <Link
-                        href={`/products/${product.id}`}
-                        className="col-span-1 inline-flex items-center justify-center p-2 rounded-brand bg-mist hover:bg-gray-200 text-charcoal border border-border text-xs transition-colors"
-                        title="View Part Preview"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <div className="mt-12 text-center">
-          <Link
-            href="/categories"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-brand bg-ink-raised border border-gray-700 hover:border-ember text-paper font-bold text-xs sm:text-sm shadow-md transition-all hover:bg-ink hover:scale-105"
-          >
-            <span>Browse Full Category Taxonomy</span>
-            <ArrowRight className="w-4 h-4 text-ember" />
-          </Link>
+        {/* =========================================================================
+            SECTION 2: PRE-OWNED SPARE PARTS
+            ========================================================================= */}
+        <div id="pre-owned-spare-parts" className="space-y-8 pt-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-gray-800">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>Inspected &amp; Disclosed</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Pre-Owned Spare Parts
+              </h2>
+              <p className="text-sm text-gray-400 mt-1 max-w-xl">
+                Tested automotive assemblies and components with disclosed wear notes, physical photographs, and exchange warranty.
+              </p>
+            </div>
+
+            <Link
+              href="/search?condition=used"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors group"
+            >
+              <span>Explore All Pre-Owned Parts</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {usedProducts.map((product) => {
+              const isWishlisted = previewWishlist.has(product.id);
+              const discountPercentage =
+                product.originalPriceMinor && product.originalPriceMinor > product.priceMinor
+                  ? Math.round(
+                      ((product.originalPriceMinor - product.priceMinor) / product.originalPriceMinor) * 100
+                    )
+                  : 0;
+
+              const productImage = PRODUCT_IMAGE_MAP[product.id] || "/images/brakes.jpg";
+
+              return (
+                <div
+                  key={product.id}
+                  className="bg-[#121826] rounded-2xl border border-gray-800/90 hover:border-amber-500/50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                >
+                  {/* Product Image Stage */}
+                  <div className="relative aspect-[4/3] bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800">
+                    <img
+                      src={productImage}
+                      alt={product.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent pointer-events-none" />
+
+                    {/* Condition Badge Top Left */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1 items-start z-10">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-md shadow-xs backdrop-blur-md">
+                        PRE-OWNED
+                      </span>
+                      <span className="text-[9px] font-bold text-gray-300 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded border border-gray-700">
+                        {product.brand}
+                      </span>
+                    </div>
+
+                    {discountPercentage > 0 && (
+                      <div className="absolute bottom-3 right-3 z-10 bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded-md shadow">
+                        Save {discountPercentage}%
+                      </div>
+                    )}
+
+                    {/* Wishlist Button */}
+                    <button
+                      type="button"
+                      onClick={() => togglePreviewWishlist(product.id)}
+                      aria-label={`Add ${product.name} to preview wishlist`}
+                      className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        isWishlisted
+                          ? "bg-amber-500 text-white"
+                          : "bg-black/60 text-gray-300 hover:text-white hover:bg-black/80"
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+                    </button>
+                  </div>
+
+                  {/* Product Content Details */}
+                  <div className="p-5 flex flex-col flex-1 justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+                        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                          {product.categorySlug.replace("-", " ")}
+                        </span>
+                        <span className="text-[10px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800">
+                          Pre-Owned
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 mb-2 leading-snug">
+                        <Link href={`/products/${product.id}`} className="focus:outline-none">
+                          {product.name}
+                        </Link>
+                      </h3>
+
+                      {/* Condition Notes Preview */}
+                      {product.conditionNotes && (
+                        <div className="p-2 rounded bg-amber-950/30 border border-amber-800/40 text-[10px] text-amber-200/90 line-clamp-2 mb-3">
+                          <strong className="text-amber-300">Inspection:</strong> {product.conditionNotes}
+                        </div>
+                      )}
+
+                      <div className="space-y-1 mb-4 text-[11px] text-gray-400">
+                        <p className="font-mono">
+                          SKU: <span className="text-gray-300">{product.sku}</span>
+                        </p>
+                        <p className="line-clamp-1">
+                          Fits: <span className="text-gray-300">{product.fitmentHint}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Pricing and Add to Cart Action */}
+                    <div className="pt-4 border-t border-gray-800/90">
+                      <div className="flex items-baseline gap-2 mb-3">
+                        <span className="text-lg font-black text-white">
+                          {formatMoney(product.priceMinor)}
+                        </span>
+                        {product.originalPriceMinor && (
+                          <span className="text-xs text-gray-500 line-through">
+                            {formatMoney(product.originalPriceMinor)}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePreviewAddToCart(product)}
+                        className="w-full btn-primary py-2.5 px-3 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        <span>Add to Cart</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

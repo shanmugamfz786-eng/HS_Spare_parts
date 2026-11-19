@@ -1,107 +1,106 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
-import { Wrench, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import type { ProductImageDTO } from "@/features/catalogue/schemas";
 
 interface ProductGalleryProps {
-  images: ProductImageDTO[];
+  images?: ProductImageDTO[];
   productName: string;
   brandName: string;
   sku: string;
+  categorySlug?: string;
   isOem?: boolean;
 }
 
+const CATEGORY_DEFAULT_GALLERIES: Record<string, string[]> = {
+  brake: ["/images/brakes.jpg", "/images/hero-car.jpg"],
+  "suspension-steering": ["/images/suspension.jpg", "/images/hero-car.jpg"],
+  "engine-parts": ["/images/engine.jpg", "/images/accessories.jpg"],
+  transmission: ["/images/transmission.jpg", "/images/engine.jpg"],
+  hvac: ["/images/cooling.jpg", "/images/engine.jpg"],
+  electrical: ["/images/electrical.jpg", "/images/body.jpg"],
+  "body-parts": ["/images/body.jpg", "/images/hero-car.jpg"],
+  accessories: ["/images/accessories.jpg", "/images/electrical.jpg"],
+};
+
 export function ProductGallery({
-  images,
+  images = [],
   productName,
   brandName,
   sku,
+  categorySlug = "brake",
   isOem = true,
 }: ProductGalleryProps) {
+  const defaultList = CATEGORY_DEFAULT_GALLERIES[categorySlug] || ["/images/brakes.jpg"];
+  const displayImages: string[] =
+    images.length > 0 ? images.map((img) => img.url) : defaultList;
+
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  // If no uploaded images exist, render an informative automotive hardware schematic canvas
-  if (!images || images.length === 0) {
-    return (
-      <div className="surface-card bg-paper text-charcoal rounded-card border border-border p-8 flex flex-col items-center justify-center min-h-[380px] shadow-card relative">
-        <div className="absolute top-4 left-4">
-          {isOem ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success bg-success/10 px-2.5 py-1 rounded-pill border border-success/20">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>OES Certified Standard</span>
-            </span>
-          ) : (
-            <span className="text-[11px] font-semibold text-muted bg-mist px-2.5 py-1 rounded-pill border border-border">
-              Tier-1 Component
-            </span>
-          )}
-        </div>
-
-        <div className="w-48 h-48 rounded-card bg-mist border border-border/80 flex flex-col items-center justify-center p-6 text-center shadow-inner my-4">
-          <Wrench className="w-12 h-12 text-muted mb-2 animate-pulse" />
-          <span className="text-xs font-bold text-muted uppercase tracking-wider block">
-            {brandName}
-          </span>
-          <span className="text-lg font-black text-charcoal block mt-1 tracking-tight">
-            {sku}
-          </span>
-        </div>
-
-        <span className="text-xs text-muted text-center max-w-xs mt-2">
-          Genuine manufacturer packaging with security seal verified prior to dispatch.
-        </span>
-      </div>
-    );
-  }
-
-  const activeImage = images[selectedIndex] ?? images[0];
+  const activeImageUrl = displayImages[selectedIndex] ?? displayImages[0];
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Active Hero Image Display */}
-      <div className="surface-card bg-paper rounded-card border border-border p-6 flex items-center justify-center min-h-[380px] relative overflow-hidden">
-        {activeImage ? (
-          <div className="relative w-full h-[320px]">
-            <Image
-              src={activeImage.url}
-              alt={activeImage.altText || productName}
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-          </div>
-        ) : null}
+      {/* Active Main Product Image */}
+      <div className="bg-[#090D18] rounded-2xl border border-gray-800 p-4 sm:p-6 flex items-center justify-center min-h-[360px] sm:min-h-[440px] relative overflow-hidden shadow-md group">
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 items-start">
+          {isOem ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-700/80 shadow">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>OEM Specification</span>
+            </span>
+          ) : (
+            <span className="text-xs font-semibold text-gray-300 bg-gray-900/80 backdrop-blur-md px-3 py-1 rounded-full border border-gray-700 shadow">
+              Aftermarket Component
+            </span>
+          )}
+
+          <span className="text-[10px] font-medium text-amber-300 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-amber-500/30">
+            Demo Catalogue View
+          </span>
+        </div>
+
+        {/* Brand Stamp */}
+        <div className="absolute top-4 right-4 z-10 text-[11px] font-mono text-gray-400 font-bold tracking-wider bg-black/50 px-2.5 py-1 rounded border border-gray-800">
+          {brandName} • {sku}
+        </div>
+
+        {/* Main Image */}
+        <div className="relative w-full h-[280px] sm:h-[360px] flex items-center justify-center">
+          <img
+            src={activeImageUrl}
+            alt={productName}
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
+          />
+        </div>
+
+        {/* Ambient Floor Glow */}
+        <div className="absolute -bottom-6 w-3/4 h-8 bg-ember/15 blur-2xl rounded-full pointer-events-none" />
       </div>
 
-      {/* Thumbnail Bar */}
-      {images.length > 1 && (
+      {/* Thumbnail Selector Gallery Bar */}
+      {displayImages.length > 1 && (
         <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
-          {images.map((img, idx) => {
+          {displayImages.map((imgUrl, idx) => {
             const isSelected = idx === selectedIndex;
             return (
               <button
-                key={img.id || idx}
+                key={idx}
                 type="button"
                 onClick={() => setSelectedIndex(idx)}
-                className={`w-16 h-16 rounded-brand border-2 overflow-hidden flex-shrink-0 transition-all p-1 bg-paper ${
+                className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl border-2 overflow-hidden flex-shrink-0 transition-all bg-[#090D18] ${
                   isSelected
-                    ? "border-ember ring-2 ring-ember/30"
-                    : "border-border hover:border-gray-400 opacity-70 hover:opacity-100"
+                    ? "border-ember shadow-md shadow-ember/30 scale-102"
+                    : "border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100"
                 }`}
-                aria-label={`Select photo ${idx + 1} of ${images.length}`}
+                aria-label={`Select product image view ${idx + 1}`}
               >
-                <div className="relative w-full h-full">
-                  <Image
-                    src={img.url}
-                    alt={img.altText || `${productName} thumbnail ${idx + 1}`}
-                    fill
-                    className="object-contain"
-                    sizes="64px"
-                  />
-                </div>
+                <img
+                  src={imgUrl}
+                  alt={`${productName} thumbnail ${idx + 1}`}
+                  className="w-full h-full object-cover object-center"
+                />
               </button>
             );
           })}

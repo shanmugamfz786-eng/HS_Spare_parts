@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Car, Search, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Car, Search, ArrowRight, CheckCircle2 } from "lucide-react";
 import { POPULAR_VEHICLE_MAKES } from "@/lib/constants/demo-catalog";
 
 export function VehicleSelector() {
@@ -51,16 +51,16 @@ export function VehicleSelector() {
   };
 
   return (
-    <div className="w-full bg-ink-raised border border-gray-800 rounded-card shadow-2xl p-5 sm:p-7 relative z-20">
+    <div className="w-full bg-white border border-gray-200/90 rounded-2xl shadow-xl sm:shadow-2xl p-5 sm:p-7 relative z-20">
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-gray-800 pb-4 mb-5">
+      <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab("vehicle")}
-          className={`inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
+          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
             activeTab === "vehicle"
-              ? "bg-ember text-paper shadow-md"
-              : "text-gray-400 hover:text-paper hover:bg-gray-800"
+              ? "bg-ember text-white shadow-md shadow-ember/20"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           }`}
         >
           <Car className="w-4 h-4" />
@@ -70,10 +70,10 @@ export function VehicleSelector() {
         <button
           type="button"
           onClick={() => setActiveTab("partNumber")}
-          className={`inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
+          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
             activeTab === "partNumber"
-              ? "bg-ember text-paper shadow-md"
-              : "text-gray-400 hover:text-paper hover:bg-gray-800"
+              ? "bg-ember text-white shadow-md shadow-ember/20"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
           }`}
         >
           <Search className="w-4 h-4" />
@@ -86,14 +86,14 @@ export function VehicleSelector() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* 1. Make */}
             <div>
-              <label htmlFor="make-select" className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="make-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 1. Select Make
               </label>
               <select
                 id="make-select"
                 value={selectedMake}
                 onChange={handleMakeChange}
-                className="w-full bg-ink border border-gray-700 text-paper text-xs sm:text-sm rounded-brand px-3 py-2.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
+                className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition-colors"
               >
                 <option value="">— All Car Makes —</option>
                 {POPULAR_VEHICLE_MAKES.map((make) => (
@@ -106,7 +106,7 @@ export function VehicleSelector() {
 
             {/* 2. Model */}
             <div>
-              <label htmlFor="model-select" className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="model-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 2. Select Model
               </label>
               <select
@@ -114,7 +114,7 @@ export function VehicleSelector() {
                 value={selectedModel}
                 onChange={handleModelChange}
                 disabled={!selectedMake}
-                className="w-full bg-ink border border-gray-700 text-paper text-xs sm:text-sm rounded-brand px-3 py-2.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <option value="">
                   {selectedMake ? "— Select Model —" : "Select Make First"}
@@ -129,7 +129,7 @@ export function VehicleSelector() {
 
             {/* 3. Year */}
             <div>
-              <label htmlFor="year-select" className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="year-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 3. Manufacturing Year
               </label>
               <select
@@ -137,7 +137,7 @@ export function VehicleSelector() {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
                 disabled={!selectedModel}
-                className="w-full bg-ink border border-gray-700 text-paper text-xs sm:text-sm rounded-brand px-3 py-2.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <option value="">
                   {selectedModel ? "— Select Year —" : "Select Model First"}
@@ -152,7 +152,7 @@ export function VehicleSelector() {
 
             {/* 4. Variant / Engine */}
             <div>
-              <label htmlFor="variant-select" className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="variant-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 4. Engine / Variant
               </label>
               <select
@@ -160,10 +160,10 @@ export function VehicleSelector() {
                 value={selectedVariant}
                 onChange={(e) => setSelectedVariant(e.target.value)}
                 disabled={!selectedYear}
-                className="w-full bg-ink border border-gray-700 text-paper text-xs sm:text-sm rounded-brand px-3 py-2.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <option value="">
-                  {selectedYear ? "— Any Variant / Engine —" : "Select Year First"}
+                  {selectedYear ? "— All Variants —" : "Select Year First"}
                 </option>
                 {currentModelData?.variants.map((v) => (
                   <option key={v} value={v}>
@@ -174,53 +174,52 @@ export function VehicleSelector() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-            <div className="flex items-center gap-2 text-xs text-success">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>Zero fitment risk: verified compatibility against OEM cross-references</span>
+          {/* Action Row */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span>Vehicle fitment assistance cross-referenced against catalogued OEM codes.</span>
             </div>
 
             <button
               type="submit"
               disabled={!selectedMake}
-              className="btn-primary w-full sm:w-auto px-6 py-2.5 font-bold text-xs sm:text-sm gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto btn-primary px-8 py-3 text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-lg shadow-ember/25 hover:shadow-ember/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              <span>Find Matching Parts</span>
-              <ArrowRight className="w-4 h-4" />
+              <Search className="w-4 h-4" />
+              <span>Search Parts</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>
         </form>
       ) : (
         <form onSubmit={handlePartSearch} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label htmlFor="part-input" className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                Enter OEM Part Number or Manufacturer SKU
-              </label>
+          <div className="max-w-2xl">
+            <label htmlFor="part-number-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+              Enter OEM / Manufacturer Part Number or SKU
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
               <input
-                id="part-input"
+                id="part-number-input"
                 type="text"
                 value={partNumber}
                 onChange={(e) => setPartNumber(e.target.value)}
-                placeholder="e.g. 55810M68P00, 04152-YZZA1, BP-BRM-8492..."
-                className="w-full bg-ink border border-gray-700 text-paper text-xs sm:text-sm rounded-brand px-4 py-2.5 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
+                placeholder="e.g. 55810M68P00, DEMO-BP-8492, 0986AB1234"
+                className="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-xs sm:text-sm rounded-xl px-4 py-2.5 focus:bg-white focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember transition-colors"
               />
-            </div>
-            <div className="sm:self-end">
               <button
                 type="submit"
                 disabled={!partNumber.trim()}
-                className="btn-primary w-full sm:w-auto px-6 py-2.5 font-bold text-xs sm:text-sm gap-2 disabled:opacity-50"
+                className="btn-primary px-7 py-2.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-lg shadow-ember/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Search className="w-4 h-4" />
-                <span>Lookup Part</span>
+                <span>Search Code</span>
               </button>
             </div>
+            <p className="text-[11px] text-gray-500 mt-2">
+              Part matches cross-referenced across catalogued OEM and aftermarket interchange lists.
+            </p>
           </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-ember" />
-            <span>Search direct OEM part numbers across Maruti Suzuki, Hyundai, Tata, Mahindra, Toyota and more.</span>
-          </p>
         </form>
       )}
     </div>

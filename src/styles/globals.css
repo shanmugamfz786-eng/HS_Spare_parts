@@ -25,8 +25,8 @@
   }
 
   body {
-    background-color: var(--color-ink);
-    color: var(--color-paper);
+    background-color: #F8F9FA;
+    color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -37,14 +37,18 @@
 /* Custom utility classes */
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ember hover:bg-ember-deep text-paper rounded-brand px-4 py-2.5;
+    @apply inline-flex items-center justify-center font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ember hover:bg-ember-deep text-paper rounded-brand px-4 py-2.5 shadow-sm hover:shadow-md active:scale-[0.99];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ink-raised hover:bg-ink text-paper border border-gray-700 rounded-brand px-4 py-2.5;
+    @apply inline-flex items-center justify-center font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-white hover:bg-gray-50 text-charcoal border border-gray-300 rounded-brand px-4 py-2.5 shadow-sm hover:border-gray-400;
+  }
+
+  .btn-dark {
+    @apply inline-flex items-center justify-center font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-ink hover:bg-ink-raised text-paper rounded-brand px-4 py-2.5 shadow-sm;
   }
 
   .surface-card {
-    @apply bg-paper text-charcoal rounded-card border border-border shadow-card overflow-hidden;
+    @apply bg-paper text-charcoal rounded-card border border-gray-200 shadow-card overflow-hidden;
   }
 }

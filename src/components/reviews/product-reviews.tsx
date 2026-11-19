@@ -8,15 +8,11 @@ import type { ReviewDTO } from "@/features/reviews/schemas";
 interface ProductReviewsProps {
   productId: string;
   initialReviews?: ReviewDTO[];
-  sampleRating?: number;
-  sampleReviewCount?: number;
 }
 
 export function ProductReviews({
   productId,
   initialReviews = [],
-  sampleRating = 4.8,
-  sampleReviewCount = 24,
 }: ProductReviewsProps) {
   const [reviewsList] = useState<ReviewDTO[]>(initialReviews);
   const [rating, setRating] = useState<number>(5);
@@ -25,6 +21,11 @@ export function ProductReviews({
   const [body, setBody] = useState("");
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const averageRating =
+    reviewsList.length > 0
+      ? reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length
+      : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,25 +59,35 @@ export function ProductReviews({
   return (
     <div className="space-y-8">
       {/* Reviews Summary Header */}
-      <div className="p-6 rounded-card bg-ink-raised border border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 rounded-xl bg-[#F8F9FA] border border-gray-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h3 className="text-lg font-bold text-paper mb-1">Customer Ratings & Reviews</h3>
-          <p className="text-xs text-gray-400">
-            Real feedback from verified automotive technicians and vehicle owners.
+          <h3 className="text-lg font-bold text-gray-900 mb-1">Customer Ratings &amp; Reviews</h3>
+          <p className="text-xs text-gray-500">
+            Submit customer feedback and review component ratings.
           </p>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <span className="text-2xl font-black text-paper block">{sampleRating.toFixed(1)}</span>
-            <span className="text-[11px] text-gray-400 block">{sampleReviewCount} sample ratings</span>
+            <span className="text-2xl font-black text-gray-900 block">
+              {reviewsList.length > 0 ? averageRating.toFixed(1) : "—"}
+            </span>
+            <span className="text-[11px] text-gray-500 block">
+              {reviewsList.length > 0
+                ? `${reviewsList.length} review${reviewsList.length === 1 ? "" : "s"}`
+                : "No reviews yet"}
+            </span>
           </div>
 
-          <div className="flex items-center text-amber-400">
+          <div className="flex items-center">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
                 key={s}
-                className={`w-5 h-5 ${s <= Math.round(sampleRating) ? "fill-current" : "text-gray-700"}`}
+                className={`w-5 h-5 ${
+                  reviewsList.length > 0 && s <= Math.round(averageRating)
+                    ? "fill-amber-400 text-amber-400"
+                    : "text-gray-300"
+                }`}
               />
             ))}
           </div>
@@ -85,27 +96,27 @@ export function ProductReviews({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Review Submission Form */}
-        <div className="lg:col-span-1 rounded-card bg-ink-raised border border-gray-800 p-6">
-          <h4 className="text-sm font-bold text-paper mb-1 flex items-center gap-2">
+        <div className="lg:col-span-1 rounded-xl bg-[#F8F9FA] border border-gray-200/90 p-6">
+          <h4 className="text-sm font-bold text-gray-900 mb-1 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-ember" />
             <span>Write a Product Review</span>
           </h4>
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs text-gray-500 mb-4">
             Share your experience with fitment, material quality, and performance.
           </p>
 
           {statusMessage && (
             <div
-              className={`mb-4 p-3 rounded-brand flex items-start gap-2 text-xs ${
+              className={`mb-4 p-3 rounded-lg flex items-start gap-2 text-xs ${
                 statusMessage.type === "success"
-                  ? "bg-green-950/30 border border-green-800 text-green-300"
-                  : "bg-red-950/30 border border-red-800 text-red-300"
+                  ? "bg-green-50 border border-green-200 text-green-900"
+                  : "bg-red-50 border border-red-200 text-red-900"
               }`}
             >
               {statusMessage.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
               )}
               <span>{statusMessage.text}</span>
             </div>
@@ -114,7 +125,7 @@ export function ProductReviews({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Star Rating Selector */}
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Your Rating
               </label>
               <div className="flex items-center gap-1">
@@ -125,19 +136,19 @@ export function ProductReviews({
                     onClick={() => setRating(star)}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 text-gray-700 hover:scale-110 transition-transform focus:outline-none"
+                    className="p-1 text-gray-300 hover:scale-110 transition-transform focus:outline-none"
                     aria-label={`${star} star rating`}
                   >
                     <Star
                       className={`w-5 h-5 ${
                         star <= (hoverRating || rating)
                           ? "fill-amber-400 text-amber-400"
-                          : "text-gray-700"
+                          : "text-gray-300"
                       }`}
                     />
                   </button>
                 ))}
-                <span className="text-xs text-gray-400 ml-2 font-semibold">
+                <span className="text-xs text-gray-600 ml-2 font-semibold">
                   {rating} of 5 Stars
                 </span>
               </div>
@@ -145,7 +156,7 @@ export function ProductReviews({
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Review Headline
               </label>
               <input
@@ -156,13 +167,13 @@ export function ProductReviews({
                 placeholder="e.g. Perfect OEM fitment for Swift 2018"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-ember"
               />
             </div>
 
             {/* Body */}
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Review Details
               </label>
               <textarea
@@ -173,7 +184,7 @@ export function ProductReviews({
                 placeholder="Describe installation experience, braking response, or packaging condition..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember resize-none"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-ember resize-none"
               />
               <span className="text-[10px] text-gray-400 block mt-1">
                 Minimum 10 characters. HTML tags will be automatically stripped.
@@ -183,7 +194,7 @@ export function ProductReviews({
             <button
               type="submit"
               disabled={isPending}
-              className="w-full btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md"
+              className="w-full btn-primary py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm rounded-lg"
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Submit Review</span>
@@ -193,77 +204,43 @@ export function ProductReviews({
 
         {/* Right: Reviews Feed */}
         <div className="lg:col-span-2 space-y-4">
-          <h4 className="text-sm font-bold text-paper">
-            Customer Reviews ({reviewsList.length + 2})
+          <h4 className="text-sm font-bold text-gray-900">
+            Customer Reviews ({reviewsList.length})
           </h4>
 
-          {/* Illustrative Demo Reviews */}
-          <div className="p-4 rounded-card bg-ink-raised border border-gray-800 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-paper">Rajesh Kumar</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
-                  Verified Technician (Illustrative Sample)
-                </span>
-              </div>
-              <div className="flex items-center text-amber-400">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-3.5 h-3.5 fill-current" />
-                ))}
-              </div>
+          {reviewsList.length === 0 ? (
+            <div className="p-8 rounded-xl bg-white border border-gray-200/90 text-center space-y-2">
+              <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-xs font-bold text-gray-800">No Customer Reviews Yet</p>
+              <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                Customer reviews submitted for this product will appear here after moderation.
+              </p>
             </div>
-            <h5 className="text-xs font-bold text-paper">OEM quality brake pads with zero dust issues</h5>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Installed these on a customer&apos;s Maruti Swift 2019 Petrol. Initial bite is crisp, zero squealing, and backing plates match OEM dimensions to the millimeter.
-            </p>
-            <span className="text-[10px] text-gray-400 block">Demonstration sample review</span>
-          </div>
-
-          <div className="p-4 rounded-card bg-ink-raised border border-gray-800 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-paper">Vikram Mehta</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
-                  Car Enthusiast (Illustrative Sample)
-                </span>
-              </div>
-              <div className="flex items-center text-amber-400">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-3.5 h-3.5 fill-current" />
-                ))}
-              </div>
-            </div>
-            <h5 className="text-xs font-bold text-paper">Genuine Brembo packaging with tamper seal</h5>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Box came with the official holographic security seal. High heat tolerance observed on highway drives. Highly recommended for replacement.
-            </p>
-            <span className="text-[10px] text-gray-400 block">Demonstration sample review</span>
-          </div>
-
-          {/* User Submitted Approved Reviews */}
-          {reviewsList.map((rev) => (
-            <div
-              key={rev.id}
-              className="p-4 rounded-card bg-ink-raised border border-gray-800 space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-paper">{rev.authorName}</span>
-                <div className="flex items-center text-amber-400">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      className={`w-3.5 h-3.5 ${s <= rev.rating ? "fill-current" : "text-gray-700"}`}
-                    />
-                  ))}
+          ) : (
+            reviewsList.map((rev) => (
+              <div
+                key={rev.id}
+                className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-xs space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900">{rev.authorName}</span>
+                  <div className="flex items-center text-amber-400">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-3.5 h-3.5 ${s <= rev.rating ? "fill-current" : "text-gray-300"}`}
+                      />
+                    ))}
+                  </div>
                 </div>
+                <h5 className="text-xs font-bold text-gray-900">{rev.title}</h5>
+                <p className="text-xs text-gray-600 leading-relaxed">{rev.body}</p>
+                <span className="text-[10px] text-gray-400 block">
+                  {new Date(rev.createdAt).toLocaleDateString()}
+                </span>
               </div>
-              <h5 className="text-xs font-bold text-paper">{rev.title}</h5>
-              <p className="text-xs text-gray-300 leading-relaxed">{rev.body}</p>
-              <span className="text-[10px] text-gray-400 block">
-                {new Date(rev.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

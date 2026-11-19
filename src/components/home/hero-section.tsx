@@ -1,94 +1,89 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Truck, RotateCcw, Sparkles } from "lucide-react";
-import { VehicleSelector } from "./vehicle-selector";
+import { ArrowRight, Layers } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative bg-ink overflow-hidden pt-8 pb-16 sm:pt-12 sm:pb-24 border-b border-gray-800">
-      {/* Background Subtle Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-ember/15 via-ember/5 to-transparent blur-3xl pointer-events-none -z-10" />
+    <section className="relative bg-[#090D18] overflow-hidden pt-10 pb-16 sm:pt-14 sm:pb-20 lg:pt-16 lg:pb-24 border-b border-gray-800 text-white">
+      {/* Automotive Ambient Lighting & Radial Glow */}
+      <div className="absolute top-1/4 right-1/4 w-[600px] h-[450px] bg-gradient-to-br from-ember/20 via-ember/5 to-transparent blur-[120px] pointer-events-none -z-10" />
+      <div className="absolute -bottom-10 left-1/3 w-[500px] h-[350px] bg-gradient-to-tr from-amber-500/10 via-transparent to-transparent blur-[100px] pointer-events-none -z-10" />
+
+      {/* Subtle Engineered Grid Pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none -z-10"
+        style={{
+          backgroundImage: "radial-gradient(#F45A1B 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Badges & Tagline */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-pill bg-ember/10 border border-ember/30 text-ember text-xs font-bold uppercase tracking-wider mb-4 animate-in fade-in duration-300">
-            <Sparkles className="w-3.5 h-3.5 text-ember" />
-            <span>India&apos;s Trusted Automotive Spares Specialist</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center min-h-[380px] sm:min-h-[420px] lg:min-h-[440px]">
+          {/* Left Column: ~45% (5 cols on lg) */}
+          <div className="lg:col-span-5 text-center lg:text-left z-20 flex flex-col justify-center">
+            {/* Eyebrow Label */}
+            <div className="inline-flex items-center gap-2 self-center lg:self-start px-3 py-1 rounded-md bg-ember/15 border border-ember/30 text-ember text-[11px] sm:text-xs font-black tracking-widest uppercase mb-4 sm:mb-5">
+              <span>NEW &amp; PRE-OWNED SPARE PARTS</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-4 leading-[1.08]">
+              Find the Right Part. <br />
+              <span className="text-ember italic">
+                New or Pre-Owned.
+              </span>
+            </h1>
+
+            {/* Supporting Text */}
+            <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-lg mx-auto lg:mx-0 leading-relaxed mb-8 font-normal">
+              Explore automotive spare parts for your vehicle, with new and pre-owned options in one place.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 sm:gap-4">
+              <Link
+                href="/search"
+                className="btn-primary px-8 py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-lg shadow-ember/30 hover:shadow-ember/50 hover:bg-ember-deep transition-all"
+              >
+                <span>Shop Parts</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/categories"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-bold rounded-xl bg-white/5 hover:bg-white/10 text-white border border-gray-700/80 hover:border-gray-500 transition-all shadow-sm"
+              >
+                <Layers className="w-4 h-4 text-ember" />
+                <span>Explore Categories</span>
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-paper mb-4 leading-tight sm:leading-none">
-            Right Part. Right Price. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-ember via-amber-400 to-ember">
-              Guaranteed Fitment.
-            </span>
-          </h1>
+          {/* Right Column: ~55% (7 cols on lg) - Immersive Edge-Blended Automotive Visual */}
+          <div className="lg:col-span-7 relative w-full flex items-center justify-center lg:justify-end mt-4 lg:mt-0">
+            {/* Showroom Ambient Warmth Glow behind car */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] h-[75%] bg-ember/15 blur-[90px] rounded-full pointer-events-none" />
 
-          <p className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Find certified replacement parts for your car. Sourced directly from tier-1 OEM & OES manufacturers with express pan-India doorstep dispatch.
-          </p>
+            <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[380px] sm:max-h-[440px] lg:max-h-[460px] overflow-hidden">
+              {/* Seamless Edge Blends into #090D18 */}
+              {/* Left Edge Gradient Blend (connects headline with car on desktop) */}
+              <div className="hidden lg:block absolute inset-y-0 left-0 w-36 bg-gradient-to-r from-[#090D18] via-[#090D18]/70 to-transparent z-10 pointer-events-none" />
+              {/* Top Edge Gradient Blend */}
+              <div className="absolute inset-x-0 top-0 h-10 sm:h-16 bg-gradient-to-b from-[#090D18] via-[#090D18]/50 to-transparent z-10 pointer-events-none" />
+              {/* Bottom Edge Gradient Blend */}
+              <div className="absolute inset-x-0 bottom-0 h-12 sm:h-20 bg-gradient-to-t from-[#090D18] via-[#090D18]/60 to-transparent z-10 pointer-events-none" />
+              {/* Right Edge Gradient Blend */}
+              <div className="hidden sm:block absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#090D18] via-[#090D18]/40 to-transparent z-10 pointer-events-none" />
 
-          {/* Quick Value Pillars */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-6 text-xs text-gray-300">
-            <span className="inline-flex items-center gap-1.5 bg-ink-raised/60 px-3 py-1.5 rounded-brand border border-gray-800">
-              <ShieldCheck className="w-4 h-4 text-ember" />
-              <span>100% Genuine OES Spares</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-ink-raised/60 px-3 py-1.5 rounded-brand border border-gray-800">
-              <Truck className="w-4 h-4 text-ember" />
-              <span>Express Pan-India Delivery</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-ink-raised/60 px-3 py-1.5 rounded-brand border border-gray-800">
-              <RotateCcw className="w-4 h-4 text-ember" />
-              <span>10-Day Hassle-Free Returns</span>
-            </span>
+              {/* Realistic Red Performance Car Image */}
+              <img
+                src="/images/hero-car.jpg"
+                alt="HS Spare Parts Premium Automotive Performance Sedan"
+                className="w-full h-full object-cover lg:object-contain object-center lg:object-right-center select-none drop-shadow-[0_25px_40px_rgba(0,0,0,0.95)]"
+                loading="eager"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Flagship Vehicle Selector Form */}
-        <div className="max-w-4xl mx-auto">
-          <VehicleSelector />
-        </div>
-
-        {/* Quick Links below hero */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400">
-          <span className="font-semibold text-gray-400">Popular Quick Searches:</span>
-          <Link
-            href="/categories/brake/brake-pads"
-            className="hover:text-ember underline underline-offset-4 decoration-gray-700 hover:decoration-ember transition-colors"
-          >
-            Brake Pads
-          </Link>
-          <span>•</span>
-          <Link
-            href="/categories/suspension-steering/struts-and-shock-absorbers"
-            className="hover:text-ember underline underline-offset-4 decoration-gray-700 hover:decoration-ember transition-colors"
-          >
-            Shock Absorbers
-          </Link>
-          <span>•</span>
-          <Link
-            href="/categories/transmission/clutch-set"
-            className="hover:text-ember underline underline-offset-4 decoration-gray-700 hover:decoration-ember transition-colors"
-          >
-            Clutch Sets
-          </Link>
-          <span>•</span>
-          <Link
-            href="/categories/hvac/radiator"
-            className="hover:text-ember underline underline-offset-4 decoration-gray-700 hover:decoration-ember transition-colors"
-          >
-            Radiators
-          </Link>
-          <span>•</span>
-          <a
-            href="https://www.motrparts.com/special-offer/stock-clearance/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-amber-400 font-bold hover:underline"
-          >
-            Stock Clearance Offers →
-          </a>
         </div>
       </div>
     </section>

@@ -23,11 +23,12 @@ describe("Storefront UI & Category Navigation Integrity", () => {
     });
   });
 
-  it("should enforce that Stock Clearance is a direct standalone link with no dropdown", () => {
+  it("should enforce that Stock Clearance has no external reference navigation and no dropdown", () => {
     const stockClearance = NAVBAR_CATEGORIES.find((c) => c.slug === "stock-clearance");
 
     expect(stockClearance).toBeDefined();
-    expect(stockClearance?.href).toBe("https://www.motrparts.com/special-offer/stock-clearance/");
+    expect(stockClearance?.href).not.toContain("motrparts.com");
+    expect(stockClearance?.external).toBe(false);
     expect(stockClearance?.isDirectLink).toBe(true);
     expect(stockClearance?.subcategories).toHaveLength(0);
   });

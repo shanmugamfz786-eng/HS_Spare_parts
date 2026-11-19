@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ChevronDown, ExternalLink, Sparkles } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
 
 export function CategoryNavbar() {
@@ -64,21 +64,17 @@ export function CategoryNavbar() {
             const hasSubcategories = category.subcategories && category.subcategories.length > 0;
             const isOpen = activeDropdown === category.id;
 
-            // Stock Clearance is a direct external link without a dropdown or chevron
+            // Stock Clearance is a direct badge (non-clickable, no external reference navigation)
             if (category.isDirectLink) {
               return (
                 <li key={category.id} className="relative py-2.5">
-                  <a
-                    href={category.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-xs uppercase tracking-wider rounded-brand bg-gradient-to-r from-ember to-amber-500 hover:from-ember-deep hover:to-ember text-paper shadow-sm transition-all transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                    title="Browse direct Stock Clearance deals"
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-xs uppercase tracking-wider rounded-brand bg-gradient-to-r from-ember to-amber-500 text-paper shadow-sm select-none cursor-default"
+                    title="Stock Clearance (In-Store Warehouse Deals)"
                   >
-                    <Sparkles className="w-3.5 h-3.5 animate-pulse text-amber-200" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                     <span>{category.name}</span>
-                    <ExternalLink className="w-3 h-3 opacity-80" />
-                  </a>
+                  </span>
                 </li>
               );
             }

@@ -8,6 +8,11 @@ import { z } from "zod";
 export const SORT_OPTIONS = ["relevance", "price_asc", "price_desc", "newest"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
+// Product conditions supported by admin-managed catalog
+export const PRODUCT_CONDITIONS = ["new", "used"] as const;
+export type ProductConditionFilter = (typeof PRODUCT_CONDITIONS)[number];
+export type ProductCondition = "new" | "used" | "unclassified";
+
 export const DEFAULT_PAGE_SIZE = 12;
 export const MAX_PAGE_SIZE = 48;
 
@@ -129,6 +134,11 @@ export const productSearchQuerySchema = z.object({
       return undefined;
     }),
 
+  // Product condition filter (new vs used/pre-owned)
+  condition: z
+    .enum(PRODUCT_CONDITIONS)
+    .optional(),
+
   // Sorting
   sort: z
     .enum(SORT_OPTIONS)
@@ -218,6 +228,7 @@ export interface ProductCardDTO {
   primaryImageUrl: string | null;
   fitmentHint: string | null;
   oemReference: string | null;
+  condition: ProductCondition;
   isDemo: boolean;
   isOem: boolean;
   availableStock?: number;
@@ -228,6 +239,11 @@ export interface ProductDetailDTO extends ProductCardDTO {
   shortDescription: string | null;
   description: string | null;
   weightGrams: number | null;
+  conditionGrade?: string | null;
+  conditionNotes?: string | null;
+  visibleWearOrDefects?: string | null;
+  testedStatus?: string | null;
+  warrantyDetails?: string | null;
   images: ProductImageDTO[];
   variants: ProductVariantDTO[];
   specifications: ProductSpecificationDTO[];
@@ -245,6 +261,7 @@ export interface FilterFacetsDTO {
   categories: FacetItemDTO[];
   brands: FacetItemDTO[];
   vehicleMakes: FacetItemDTO[];
+  conditions: FacetItemDTO[];
   priceRange: {
     min: number;
     max: number;
@@ -264,6 +281,7 @@ export interface CatalogueSearchResponseDTO {
     category?: string;
     subcategory?: string;
     brand?: string[];
+    condition?: ProductConditionFilter;
     minPrice?: number;
     maxPrice?: number;
     make?: string;

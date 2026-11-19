@@ -183,9 +183,9 @@ export const NAVBAR_CATEGORIES: NavCategoryItem[] = [
     id: "stock-clearance",
     name: "Stock Clearance",
     slug: "stock-clearance",
-    href: "https://www.motrparts.com/special-offer/stock-clearance/",
+    href: "",
     isDirectLink: true,
-    external: true,
+    external: false,
     highlight: true,
     badge: "Special Offer",
     subcategories: [], // Must NOT have a dropdown or submenu

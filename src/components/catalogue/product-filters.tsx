@@ -34,6 +34,7 @@ export function ProductFilters({
   const activeCategory = searchParams.get("category") || "";
   const activeSubcategory = searchParams.get("subcategory") || "";
   const activeBrands = searchParams.get("brand")?.split(",").filter(Boolean) || [];
+  const activeCondition = searchParams.get("condition") || "";
   const activeMinPrice = searchParams.get("minPrice") || "";
   const activeMaxPrice = searchParams.get("maxPrice") || "";
   const activeMake = searchParams.get("make") || "";
@@ -109,6 +110,7 @@ export function ProductFilters({
     activeCategory ||
       activeSubcategory ||
       activeBrands.length > 0 ||
+      activeCondition ||
       activeMinPrice ||
       activeMaxPrice ||
       activeMake ||
@@ -119,12 +121,12 @@ export function ProductFilters({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Active Filter Pills Bar */}
       {hasActiveFilters && (
-        <div className="p-4 rounded-brand bg-ink-raised border border-gray-800">
+        <div className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-paper">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-900">
               Active Filters
             </span>
             <button
@@ -138,8 +140,22 @@ export function ProductFilters({
           </div>
 
           <div className="flex flex-wrap gap-1.5">
+            {activeCondition && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
+                <span>Condition: {activeCondition === "used" ? "Pre-Owned" : "New"}</span>
+                <button
+                  type="button"
+                  onClick={() => updateFilters({ condition: null })}
+                  className="hover:text-ember"
+                  aria-label="Remove condition filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
             {activeCategory && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
                 <span>Category: {activeCategory}</span>
                 <button
                   type="button"
@@ -153,7 +169,7 @@ export function ProductFilters({
             )}
 
             {activeSubcategory && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
                 <span>Sub: {activeSubcategory}</span>
                 <button
                   type="button"
@@ -169,7 +185,7 @@ export function ProductFilters({
             {activeBrands.map((b) => (
               <span
                 key={b}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium"
               >
                 <span>Brand: {b}</span>
                 <button
@@ -184,7 +200,7 @@ export function ProductFilters({
             ))}
 
             {(activeMinPrice || activeMaxPrice) && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
                 <span>
                   Price: ₹{activeMinPrice || "0"} – ₹{activeMaxPrice || "Any"}
                 </span>
@@ -204,7 +220,7 @@ export function ProductFilters({
             )}
 
             {activeMake && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
                 <span>Vehicle: {activeMake}</span>
                 <button
                   type="button"
@@ -225,7 +241,7 @@ export function ProductFilters({
             )}
 
             {activeInStock && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-ink text-paper border border-gray-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-800 border border-gray-200 text-xs font-medium">
                 <span>In-Stock Only</span>
                 <button
                   type="button"
@@ -241,9 +257,51 @@ export function ProductFilters({
         </div>
       )}
 
+      {/* 0. Product Condition Filter */}
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center justify-between">
+          <span>Product Condition</span>
+        </h3>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => updateFilters({ condition: null })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              !activeCondition
+                ? "bg-gray-900 text-white border-gray-900 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => updateFilters({ condition: "new" })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              activeCondition === "new"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            New
+          </button>
+          <button
+            type="button"
+            onClick={() => updateFilters({ condition: "used" })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              activeCondition === "used"
+                ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            Pre-Owned
+          </button>
+        </div>
+      </div>
+
       {/* 1. Vehicle Fitment Filter Accordion */}
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-paper flex items-center justify-between mb-3">
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
           <span className="flex items-center gap-1.5">
             <Car className="w-3.5 h-3.5 text-ember" />
             <span>Vehicle Fitment</span>
@@ -252,7 +310,7 @@ export function ProductFilters({
 
         <div className="space-y-2.5">
           <div>
-            <label htmlFor="filter-make" className="block text-[11px] font-semibold text-gray-400 mb-1">
+            <label htmlFor="filter-make" className="block text-[11px] font-semibold text-gray-600 mb-1">
               Vehicle Make
             </label>
             <select
@@ -266,7 +324,7 @@ export function ProductFilters({
                   variant: null,
                 })
               }
-              className="w-full bg-ink border border-gray-700 rounded px-2.5 py-1.5 text-xs text-paper focus:outline-none focus:border-ember"
+              className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
             >
               <option value="">All Vehicle Makes</option>
               {POPULAR_VEHICLE_MAKES.map((m) => (
@@ -279,7 +337,7 @@ export function ProductFilters({
 
           {activeMake && (
             <div>
-              <label htmlFor="filter-model" className="block text-[11px] font-semibold text-gray-400 mb-1">
+              <label htmlFor="filter-model" className="block text-[11px] font-semibold text-gray-600 mb-1">
                 Model
               </label>
               <select
@@ -292,7 +350,7 @@ export function ProductFilters({
                     variant: null,
                   })
                 }
-                className="w-full bg-ink border border-gray-700 rounded px-2.5 py-1.5 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
               >
                 <option value="">All Models</option>
                 {POPULAR_VEHICLE_MAKES.find((m) => m.slug === activeMake)?.models.map((mod) => (
@@ -307,15 +365,15 @@ export function ProductFilters({
       </div>
 
       {/* 2. Categories & Subcategories List */}
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-paper flex items-center justify-between mb-3 pb-2 border-b border-gray-800">
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
           <span className="flex items-center gap-1.5">
             <SlidersHorizontal className="w-3.5 h-3.5 text-ember" />
             <span>Categories</span>
           </span>
         </h3>
 
-        <ul className="space-y-1.5 text-xs">
+        <ul className="space-y-1 text-xs">
           {NAVBAR_CATEGORIES.filter((c) => !c.isDirectLink).map((cat) => {
             const isCatSelected = activeCategory.toLowerCase() === cat.slug.toLowerCase();
             return (
@@ -328,10 +386,10 @@ export function ProductFilters({
                       subcategory: null,
                     })
                   }
-                  className={`w-full text-left py-1 px-2 rounded flex items-center justify-between transition-colors ${
+                  className={`w-full text-left py-1.5 px-2 rounded-lg flex items-center justify-between transition-colors ${
                     isCatSelected
-                      ? "bg-ember text-paper font-bold"
-                      : "text-gray-300 hover:bg-ink hover:text-paper"
+                      ? "bg-ember text-white font-bold"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
                   <span className="truncate">{cat.name}</span>
@@ -342,7 +400,7 @@ export function ProductFilters({
 
                 {/* Subcategories */}
                 {isCatSelected && cat.subcategories.length > 0 && (
-                  <ul className="ml-3 mt-1.5 space-y-1 pl-2 border-l border-gray-700">
+                  <ul className="ml-3 mt-1.5 space-y-1 pl-2 border-l border-gray-200">
                     {cat.subcategories.map((sub) => {
                       const isSubSelected = activeSubcategory.toLowerCase() === sub.slug.toLowerCase();
                       return (
@@ -354,10 +412,10 @@ export function ProductFilters({
                                 subcategory: isSubSelected ? null : sub.slug,
                               })
                             }
-                            className={`w-full text-left py-0.5 px-1.5 rounded text-[11px] transition-colors ${
+                            className={`w-full text-left py-1 px-1.5 rounded text-[11px] transition-colors ${
                               isSubSelected
-                                ? "text-ember font-bold"
-                                : "text-gray-400 hover:text-paper"
+                                ? "text-ember font-bold bg-ember/5"
+                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                             }`}
                           >
                             • {sub.name}
@@ -374,8 +432,8 @@ export function ProductFilters({
       </div>
 
       {/* 3. Brands Checkbox List */}
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-paper mb-3 pb-2 border-b border-gray-800">
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100">
           Brands
         </h3>
 
@@ -385,14 +443,14 @@ export function ProductFilters({
             return (
               <label
                 key={b.value}
-                className="flex items-center justify-between text-xs text-gray-300 hover:text-paper cursor-pointer py-0.5"
+                className="flex items-center justify-between text-xs text-gray-700 hover:text-gray-900 cursor-pointer py-0.5"
               >
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => handleBrandToggle(b.value)}
-                    className="w-3.5 h-3.5 rounded border-gray-700 bg-ink text-ember focus:ring-ember focus:ring-offset-ink"
+                    className="w-3.5 h-3.5 rounded border-gray-300 bg-white text-ember focus:ring-ember focus:ring-offset-0"
                   />
                   <span>{b.label}</span>
                 </div>
@@ -406,15 +464,15 @@ export function ProductFilters({
       </div>
 
       {/* 4. Price Range Filter */}
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-paper mb-3 pb-2 border-b border-gray-800">
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100">
           Price Range (₹)
         </h3>
 
         <form onSubmit={handlePriceApply} className="space-y-2.5">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label htmlFor="price-min" className="block text-[10px] text-gray-400 mb-0.5">
+              <label htmlFor="price-min" className="block text-[10px] text-gray-500 mb-0.5">
                 Min (₹)
               </label>
               <input
@@ -425,11 +483,11 @@ export function ProductFilters({
                 placeholder="0"
                 value={minPriceInput}
                 onChange={(e) => setMinPriceInput(e.target.value)}
-                className="w-full bg-ink border border-gray-700 rounded px-2 py-1 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
               />
             </div>
             <div>
-              <label htmlFor="price-max" className="block text-[10px] text-gray-400 mb-0.5">
+              <label htmlFor="price-max" className="block text-[10px] text-gray-500 mb-0.5">
                 Max (₹)
               </label>
               <input
@@ -440,14 +498,14 @@ export function ProductFilters({
                 placeholder="50000"
                 value={maxPriceInput}
                 onChange={(e) => setMaxPriceInput(e.target.value)}
-                className="w-full bg-ink border border-gray-700 rounded px-2 py-1 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full btn-primary py-1.5 px-3 text-xs font-semibold"
+            className="w-full btn-primary py-2 px-3 text-xs font-semibold rounded-lg"
           >
             Apply Price Filter
           </button>
@@ -455,17 +513,17 @@ export function ProductFilters({
       </div>
 
       {/* 5. Stock Availability Filter */}
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-paper mb-3 pb-2 border-b border-gray-800">
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100">
           Stock Availability
         </h3>
-        <label className="flex items-center justify-between text-xs text-gray-300 hover:text-paper cursor-pointer py-0.5">
+        <label className="flex items-center justify-between text-xs text-gray-700 hover:text-gray-900 cursor-pointer py-0.5">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={activeInStock}
               onChange={(e) => updateFilters({ inStockOnly: e.target.checked ? "true" : null })}
-              className="w-3.5 h-3.5 rounded border-gray-700 bg-ink text-ember focus:ring-ember focus:ring-offset-ink"
+              className="w-3.5 h-3.5 rounded border-gray-300 bg-white text-ember focus:ring-ember focus:ring-offset-0"
             />
             <span>In-Stock Items Only</span>
           </div>

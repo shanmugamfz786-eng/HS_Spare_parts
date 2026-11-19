@@ -27,9 +27,9 @@ export function Footer() {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-paper font-bold text-sm">Genuine OES Standards</h4>
+              <h4 className="text-paper font-bold text-sm">OES &amp; OEM Standards</h4>
               <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                Catalogue architecture designed for tier-1 OEM and OES certified replacement components.
+                Catalogue architecture designed for OEM and OES specification replacement components.
               </p>
             </div>
           </div>
@@ -161,7 +161,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/pages/fitment-guarantee" className="text-gray-400 hover:text-ember transition-colors">
-                  Fitment Guarantee Notes
+                  Fitment Assistance Notes
                 </Link>
               </li>
               <li>

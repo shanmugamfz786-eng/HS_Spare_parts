@@ -75,7 +75,7 @@ export default function AccountPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-24 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-ember mx-auto mb-3" />
-        <p className="text-xs text-gray-400">Loading customer account...</p>
+        <p className="text-xs text-gray-500">Loading customer account...</p>
       </div>
     );
   }
@@ -84,13 +84,13 @@ export default function AccountPage() {
   if (profile) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-200">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-paper tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
               My Account
             </h1>
-            <p className="text-xs text-gray-400 mt-1">
-              Welcome back, <span className="text-paper font-semibold">{profile.name}</span> ({profile.email})
+            <p className="text-xs text-gray-500 mt-1">
+              Welcome back, <span className="text-gray-900 font-semibold">{profile.name}</span> ({profile.email})
             </p>
           </div>
 
@@ -108,30 +108,30 @@ export default function AccountPage() {
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Profile Card */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 flex flex-col justify-between hover:border-gray-700 transition-all">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 flex flex-col justify-between hover:border-gray-300 hover:shadow-md transition-all">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-ink border border-gray-700 flex items-center justify-center text-ember">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-ember">
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-paper">Personal Profile</h2>
-                  <span className="text-xs text-gray-400">Contact & login details</span>
+                  <h2 className="text-base font-bold text-gray-900">Personal Profile</h2>
+                  <span className="text-xs text-gray-500">Contact & login details</span>
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs text-gray-300 mb-6">
+              <div className="space-y-2 text-xs text-gray-600 mb-6">
                 <div>
-                  <span className="text-gray-400">Full Name: </span>
-                  <span className="font-semibold text-paper">{profile.name}</span>
+                  <span className="text-gray-500">Full Name: </span>
+                  <span className="font-semibold text-gray-900">{profile.name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Email: </span>
-                  <span className="font-mono text-paper">{profile.email}</span>
+                  <span className="text-gray-500">Email: </span>
+                  <span className="font-mono text-gray-900">{profile.email}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Phone: </span>
-                  <span className="font-mono text-paper">{profile.phone || "Not configured"}</span>
+                  <span className="text-gray-500">Phone: </span>
+                  <span className="font-mono text-gray-900">{profile.phone || "Not configured"}</span>
                 </div>
               </div>
             </div>
@@ -146,19 +146,19 @@ export default function AccountPage() {
           </div>
 
           {/* Address Book Card */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 flex flex-col justify-between hover:border-gray-700 transition-all">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 flex flex-col justify-between hover:border-gray-300 hover:shadow-md transition-all">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-ink border border-gray-700 flex items-center justify-center text-ember">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-ember">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-paper">Address Book</h2>
-                  <span className="text-xs text-gray-400">Manage delivery addresses</span>
+                  <h2 className="text-base font-bold text-gray-900">Address Book</h2>
+                  <span className="text-xs text-gray-500">Manage delivery addresses</span>
                 </div>
               </div>
 
-              <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+              <p className="text-xs text-gray-500 mb-6 leading-relaxed">
                 Configure your verified delivery locations across India for faster parts fulfillment.
               </p>
             </div>
@@ -173,19 +173,19 @@ export default function AccountPage() {
           </div>
 
           {/* Saved Wishlist Card */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 flex flex-col justify-between hover:border-gray-700 transition-all">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 flex flex-col justify-between hover:border-gray-300 hover:shadow-md transition-all">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-ink border border-gray-700 flex items-center justify-center text-ember">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-ember">
                   <Heart className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-paper">Saved Wishlist</h2>
-                  <span className="text-xs text-gray-400">Items saved for later</span>
+                  <h2 className="text-base font-bold text-gray-900">Saved Wishlist</h2>
+                  <span className="text-xs text-gray-500">Items saved for later</span>
                 </div>
               </div>
 
-              <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+              <p className="text-xs text-gray-500 mb-6 leading-relaxed">
                 Review your saved parts, monitor live stock levels, and add items directly to your cart.
               </p>
             </div>
@@ -200,19 +200,19 @@ export default function AccountPage() {
           </div>
 
           {/* Orders Card */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 flex flex-col justify-between hover:border-gray-700 transition-all">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 flex flex-col justify-between hover:border-gray-300 hover:shadow-md transition-all">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-ink border border-gray-700 flex items-center justify-center text-ember">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-ember">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-paper">Order History</h2>
-                  <span className="text-xs text-gray-400">Past purchases & reservation status</span>
+                  <h2 className="text-base font-bold text-gray-900">Order History</h2>
+                  <span className="text-xs text-gray-500">Past purchases & reservation status</span>
                 </div>
               </div>
 
-              <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+              <p className="text-xs text-gray-500 mb-6 leading-relaxed">
                 Review your placed orders, inspect immutable item snapshots, and check payment and fulfilment timelines.
               </p>
             </div>
@@ -233,21 +233,21 @@ export default function AccountPage() {
   // 2. Unauthenticated Login / Register Form
   return (
     <div className="max-w-md mx-auto px-4 py-12">
-      <div className="rounded-card bg-ink-raised border border-gray-800 p-8 shadow-2xl">
+      <div className="rounded-2xl bg-white border border-gray-200/90 p-8 shadow-xl">
         <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-brand bg-gradient-to-br from-ember to-ember-deep text-paper font-black text-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-ember to-ember-deep text-white font-black text-xl flex items-center justify-center mx-auto mb-3 shadow-md">
             HS
           </div>
-          <h1 className="text-xl font-bold text-paper">
+          <h1 className="text-xl font-bold text-gray-900">
             {authMode === "login" ? "Sign In to Your Account" : "Create Customer Account"}
           </h1>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Access saved addresses, wishlists, and synchronized carts.
           </p>
         </div>
 
         {formError && (
-          <div className="mb-4 p-3 rounded-brand bg-red-950/30 border border-red-800 text-xs text-red-300">
+          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
             {formError}
           </div>
         )}
@@ -255,7 +255,7 @@ export default function AccountPage() {
         {authMode === "login" ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Email Address
               </label>
               <input
@@ -263,26 +263,34 @@ export default function AccountPage() {
                 name="email"
                 required
                 placeholder="you@example.com"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.email && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.email[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.email[0]}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-[11px] text-ember hover:underline font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 name="password"
                 required
                 placeholder="••••••••"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.password && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.password[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.password[0]}</p>
               )}
             </div>
 
@@ -298,7 +306,7 @@ export default function AccountPage() {
         ) : (
           <form onSubmit={handleRegisterSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Full Name
               </label>
               <input
@@ -306,15 +314,15 @@ export default function AccountPage() {
                 name="name"
                 required
                 placeholder="John Doe"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.name && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.name[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.name[0]}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Email Address
               </label>
               <input
@@ -322,30 +330,30 @@ export default function AccountPage() {
                 name="email"
                 required
                 placeholder="you@example.com"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.email && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.email[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.email[0]}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Phone Number (Optional)
               </label>
               <input
                 type="tel"
                 name="phone"
                 placeholder="9876543210"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.phone && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.phone[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.phone[0]}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Password
               </label>
               <input
@@ -353,10 +361,10 @@ export default function AccountPage() {
                 name="password"
                 required
                 placeholder="At least 8 characters"
-                className="w-full bg-ink border border-gray-700 rounded px-3 py-2 text-xs text-paper focus:outline-none focus:border-ember"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
               />
               {fieldErrors.password && (
-                <p className="text-[11px] text-red-400 mt-1">{fieldErrors.password[0]}</p>
+                <p className="text-[11px] text-red-600 mt-1">{fieldErrors.password[0]}</p>
               )}
             </div>
 
@@ -371,7 +379,7 @@ export default function AccountPage() {
           </form>
         )}
 
-        <div className="mt-6 pt-4 border-t border-gray-800 text-center">
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
           <button
             type="button"
             onClick={() => {

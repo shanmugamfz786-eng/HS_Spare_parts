@@ -46,16 +46,16 @@ export default function CustomerOrdersPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-800">
+      <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-black text-paper tracking-tight">Order History</h1>
-          <p className="text-xs text-gray-400 mt-1">
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Order History</h1>
+          <p className="text-xs text-gray-500 mt-1">
             Review past orders, check reservation states, and view snapshot invoices
           </p>
         </div>
         <Link
           href="/account"
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ember transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-ember transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Account Dashboard</span>
@@ -66,14 +66,14 @@ export default function CustomerOrdersPage() {
       {isLoading && (
         <div className="py-20 text-center">
           <Loader2 className="w-8 h-8 animate-spin text-ember mx-auto mb-3" />
-          <p className="text-xs text-gray-400">Loading your orders...</p>
+          <p className="text-xs text-gray-500">Loading your orders...</p>
         </div>
       )}
 
       {/* Error */}
       {!isLoading && errorMessage && (
-        <div className="p-6 rounded-card bg-red-950/20 border border-red-800 text-center max-w-md mx-auto my-8">
-          <p className="text-xs text-red-300 mb-4">{errorMessage}</p>
+        <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-center max-w-md mx-auto my-8">
+          <p className="text-xs text-red-700 mb-4">{errorMessage}</p>
           <button
             type="button"
             onClick={() => fetchOrders(page)}
@@ -86,12 +86,12 @@ export default function CustomerOrdersPage() {
 
       {/* Empty State */}
       {!isLoading && !errorMessage && data && data.orders.length === 0 && (
-        <div className="p-12 rounded-card bg-ink-raised border border-gray-800 text-center max-w-md mx-auto my-8">
-          <div className="w-14 h-14 rounded-full bg-ink border border-gray-700 flex items-center justify-center text-gray-400 mx-auto mb-4">
+        <div className="p-12 rounded-2xl bg-white border border-gray-200/90 shadow-sm text-center max-w-md mx-auto my-8">
+          <div className="w-14 h-14 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 mx-auto mb-4">
             <Package className="w-7 h-7 text-gray-400" />
           </div>
-          <h2 className="text-base font-bold text-paper mb-1">No Orders Found</h2>
-          <p className="text-xs text-gray-400 mb-6">
+          <h2 className="text-base font-bold text-gray-900 mb-1">No Orders Found</h2>
+          <p className="text-xs text-gray-500 mb-6">
             You haven&apos;t placed any orders with HS Spare Parts yet.
           </p>
           <Link
@@ -116,20 +116,20 @@ export default function CustomerOrdersPage() {
             return (
               <div
                 key={order.id}
-                className="rounded-card bg-ink-raised border border-gray-800 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:border-gray-700 transition-colors"
+                className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:border-gray-300 hover:shadow-md transition-all"
               >
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-mono font-bold text-sm text-paper">{order.orderNumber}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span className="font-mono font-bold text-sm text-gray-900">{order.orderNumber}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
                       {order.paymentStatus === "pending" ? "Pending Payment" : order.paymentStatus}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-800 text-gray-300">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700">
                       {order.fulfillmentStatus}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-gray-400" />
                       <span>{formattedDate}</span>
@@ -139,15 +139,15 @@ export default function CustomerOrdersPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-gray-800">
+                <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
                   <div className="text-left md:text-right">
-                    <span className="text-[10px] uppercase text-gray-400 block font-semibold">Total</span>
-                    <span className="font-mono font-bold text-base text-paper">{formatMoney(order.totalMinor)}</span>
+                    <span className="text-[10px] uppercase text-gray-500 block font-semibold">Total</span>
+                    <span className="font-mono font-bold text-base text-gray-900">{formatMoney(order.totalMinor)}</span>
                   </div>
 
                   <Link
                     href={`/account/orders/${order.orderNumber}`}
-                    className="btn-outline py-2 px-3 text-xs font-bold inline-flex items-center gap-1.5"
+                    className="btn-secondary py-2 px-3 text-xs font-bold inline-flex items-center gap-1.5"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>View Details</span>
@@ -159,8 +159,8 @@ export default function CustomerOrdersPage() {
 
           {/* Pagination Controls */}
           {data.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-6 border-t border-gray-800 text-xs">
-              <span className="text-gray-400">
+            <div className="flex items-center justify-between pt-6 border-t border-gray-200 text-xs">
+              <span className="text-gray-500">
                 Page {data.page} of {data.totalPages} ({data.total} total orders)
               </span>
               <div className="flex gap-2">
@@ -168,7 +168,7 @@ export default function CustomerOrdersPage() {
                   type="button"
                   disabled={data.page <= 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="btn-outline py-1.5 px-3 text-xs font-semibold disabled:opacity-40"
+                  className="btn-secondary py-1.5 px-3 text-xs font-semibold disabled:opacity-40"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
                   Previous
@@ -177,7 +177,7 @@ export default function CustomerOrdersPage() {
                   type="button"
                   disabled={data.page >= data.totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="btn-outline py-1.5 px-3 text-xs font-semibold disabled:opacity-40"
+                  className="btn-secondary py-1.5 px-3 text-xs font-semibold disabled:opacity-40"
                 >
                   Next
                   <ArrowRight className="w-3.5 h-3.5 inline ml-1" />

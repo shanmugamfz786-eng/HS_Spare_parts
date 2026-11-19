@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { ShoppingCart, Heart, PhoneCall, Loader2, Check, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ShoppingCart,
+  Heart,
+  PhoneCall,
+  Loader2,
+  Check,
+  AlertCircle,
+  Zap,
+  Plus,
+  Minus,
+} from "lucide-react";
 import { addToCartAction } from "@/features/cart/actions";
 import { addToWishlistAction } from "@/features/wishlist/actions";
 
@@ -11,10 +22,26 @@ interface ProductPurchaseActionsProps {
   isDemo?: boolean;
 }
 
-export function ProductPurchaseActions({ productId, inStock, isDemo = false }: ProductPurchaseActionsProps) {
+export function ProductPurchaseActions({
+  productId,
+  inStock,
+  isDemo = false,
+}: ProductPurchaseActionsProps) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isPending, startTransition] = useTransition();
-  const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
+
+  const incrementQty = () => {
+    if (quantity < 10) setQuantity((prev) => prev + 1);
+  };
+
+  const decrementQty = () => {
+    if (quantity > 1) setQuantity((prev) => prev - 1);
+  };
 
   const handleAddToCart = () => {
     setNotification(null);
@@ -46,6 +73,34 @@ export function ProductPurchaseActions({ productId, inStock, isDemo = false }: P
     });
   };
 
+  const handleBuyNow = () => {
+    setNotification(null);
+    startTransition(async () => {
+      if (isDemo) {
+        setNotification({
+          type: "info",
+          message: "[Demo Catalogue Preview] Redirecting to checkout preview...",
+        });
+        router.push("/checkout");
+        return;
+      }
+
+      const res = await addToCartAction({
+        productId,
+        quantity,
+      });
+
+      if (res.success) {
+        router.push("/checkout");
+      } else {
+        setNotification({
+          type: "error",
+          message: res.error || "Failed to proceed to checkout.",
+        });
+      }
+    });
+  };
+
   const handleAddToWishlist = () => {
     setNotification(null);
     startTransition(async () => {
@@ -66,44 +121,56 @@ export function ProductPurchaseActions({ productId, inStock, isDemo = false }: P
 
   return (
     <div className="space-y-4">
+      {/* Alert Notification */}
       {notification && (
         <div
-          className={`p-3 rounded-brand flex items-start gap-2 text-xs ${
+          className={`p-3.5 rounded-xl flex items-start gap-2.5 text-xs ${
             notification.type === "success"
-              ? "bg-green-950/30 border border-green-800 text-green-300"
+              ? "bg-green-50 border border-green-200 text-green-900"
               : notification.type === "info"
-              ? "bg-amber-950/30 border border-amber-800 text-amber-300"
-              : "bg-red-950/30 border border-red-800 text-red-300"
+              ? "bg-amber-50 border border-amber-200 text-amber-900"
+              : "bg-red-50 border border-red-200 text-red-900"
           }`}
         >
           {notification.type === "success" ? (
-            <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+            <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           )}
-          <span>{notification.message}</span>
+          <span className="leading-relaxed">{notification.message}</span>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Quantity Select */}
-        <div className="flex items-center border border-gray-700 rounded-brand bg-ink px-2 py-1.5 w-full sm:w-auto self-start justify-between sm:justify-start">
-          <label htmlFor="qty-select" className="text-xs text-gray-400 mr-2 font-medium">
-            Qty:
-          </label>
-          <select
-            id="qty-select"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            disabled={!inStock || isPending}
-            className="bg-transparent text-xs text-paper font-bold focus:outline-none cursor-pointer"
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <option key={num} value={num} className="bg-ink text-paper">
-                {num}
-              </option>
-            ))}
-          </select>
+      {/* Quantity & Action Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+        {/* Quantity Stepper */}
+        <div className="flex items-center border border-gray-300 rounded-xl bg-gray-50 px-3 py-2 justify-between sm:justify-start gap-3 w-full sm:w-auto">
+          <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+            Qty
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={decrementQty}
+              disabled={quantity <= 1 || !inStock || isPending}
+              className="w-7 h-7 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-gray-700 hover:border-ember disabled:opacity-40 transition-colors shadow-xs"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="w-6 text-center text-sm font-black text-gray-900">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={incrementQty}
+              disabled={quantity >= 10 || !inStock || isPending}
+              className="w-7 h-7 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-gray-700 hover:border-ember disabled:opacity-40 transition-colors shadow-xs"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Add to Cart Button */}
@@ -111,34 +178,50 @@ export function ProductPurchaseActions({ productId, inStock, isDemo = false }: P
           type="button"
           onClick={handleAddToCart}
           disabled={!inStock || isPending}
-          className="btn-primary flex-1 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-primary flex-1 py-3.5 px-4 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
-          <span>{inStock ? "Add to Shopping Cart" : "Currently Out of Stock"}</span>
+          {isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <ShoppingCart className="w-4 h-4" />
+          )}
+          <span>{inStock ? "Add to Cart" : "Out of Stock"}</span>
         </button>
 
-        {/* Add to Wishlist Button */}
+        {/* Buy Now Button */}
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          disabled={!inStock || isPending}
+          className="inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-[#090D18] hover:bg-[#111827] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+        >
+          <Zap className="w-4 h-4 text-amber-400" />
+          <span>Buy Now</span>
+        </button>
+
+        {/* Wishlist Button */}
         <button
           type="button"
           onClick={handleAddToWishlist}
           disabled={isPending}
-          className="btn-secondary py-3 px-4 text-xs font-semibold flex items-center justify-center gap-1.5"
+          className="p-3.5 rounded-xl bg-white border border-gray-300 hover:border-ember text-gray-700 hover:text-ember transition-colors shadow-xs flex items-center justify-center self-stretch sm:self-auto"
           title="Save to Wishlist"
           aria-label="Save to Wishlist"
         >
-          <Heart className="w-4 h-4 text-ember" />
-          <span className="hidden sm:inline">Wishlist</span>
+          <Heart className="w-5 h-5" />
         </button>
+      </div>
 
-        {/* Disabled WhatsApp Button */}
+      {/* WhatsApp Support Status (Disabled as per instructions) */}
+      <div className="pt-1">
         <button
           type="button"
           disabled
-          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-brand bg-ink-raised border border-gray-800 text-gray-500 font-semibold text-xs cursor-not-allowed shadow-none"
+          className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gray-100 border border-gray-200 text-gray-400 font-semibold text-xs cursor-not-allowed"
           title="WhatsApp support disabled until official business number is configured."
         >
-          <PhoneCall className="w-4 h-4 text-gray-600" />
-          <span className="hidden xl:inline">Specialist Desk</span>
+          <PhoneCall className="w-4 h-4 text-gray-400" />
+          <span>WhatsApp Specialist Fitment Assistance (Disabled)</span>
         </button>
       </div>
     </div>

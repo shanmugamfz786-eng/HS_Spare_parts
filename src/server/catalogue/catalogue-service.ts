@@ -25,6 +25,7 @@ import {
   type ProductDetailDTO,
   type VehicleFitmentDTO,
   type FilterFacetsDTO,
+  type ProductCondition,
 } from "@/features/catalogue/schemas";
 import { DEMO_FEATURED_PRODUCTS, POPULAR_VEHICLE_MAKES } from "@/lib/constants/demo-catalog";
 
@@ -34,6 +35,18 @@ interface ProductAttributes {
   fitmentHint?: string;
   oemReference?: string;
   isOem?: boolean;
+  condition?: "new" | "used" | "unclassified";
+  conditionGrade?: string;
+  conditionNotes?: string;
+  visibleWearOrDefects?: string;
+  testedStatus?: string;
+  warrantyDetails?: string;
+}
+
+export function parseProductCondition(raw?: unknown): ProductCondition {
+  if (raw === "new") return "new";
+  if (raw === "used") return "used";
+  return "unclassified";
 }
 
 interface ProductDbRow {
@@ -232,6 +245,17 @@ async function searchProductsFromDatabase(
     );
   }
 
+  // 7. Product condition filter (New vs Pre-Owned/Used)
+  // CRITICAL: Never silently classify unknown products as NEW.
+  // Explicit condition = "new": include in New results.
+  // Explicit condition = "used": include in Pre-Owned results.
+  // Missing or invalid condition: classified as Unclassified, and excluded from New/Used results.
+  if (params.condition === "new") {
+    conditions.push(sql`${products.attributes}->>'condition' = 'new'`);
+  } else if (params.condition === "used") {
+    conditions.push(sql`${products.attributes}->>'condition' = 'used'`);
+  }
+
   const whereClause = and(...conditions);
 
   // Sorting logic
@@ -306,6 +330,7 @@ async function searchProductsFromDatabase(
       primaryImageUrl: null,
       fitmentHint: attrs?.fitmentHint ?? null,
       oemReference: attrs?.oemReference ?? null,
+      condition: parseProductCondition(attrs?.condition),
       isDemo: false,
       isOem: Boolean(attrs?.isOem),
       availableStock: availableQty,
@@ -329,6 +354,7 @@ async function searchProductsFromDatabase(
       category: params.category,
       subcategory: params.subcategory,
       brand: params.brand,
+      condition: params.condition,
       minPrice: params.minPrice,
       maxPrice: params.maxPrice,
       make: params.make,
@@ -379,6 +405,14 @@ function searchProductsFromDemoCatalog(
   if (params.brand && params.brand.length > 0) {
     const selectedBrands = params.brand.map((b) => b.toLowerCase());
     list = list.filter((p) => selectedBrands.includes(p.brand.toLowerCase()));
+  }
+
+  // Product condition filter (New vs Pre-Owned/Used)
+  // CRITICAL: Unclassified or missing conditions must NOT appear in New or Pre-Owned filtered results
+  if (params.condition === "new") {
+    list = list.filter((p) => p.condition === "new");
+  } else if (params.condition === "used") {
+    list = list.filter((p) => p.condition === "used");
   }
 
   // Price range filters
@@ -451,6 +485,7 @@ function searchProductsFromDemoCatalog(
     primaryImageUrl: null,
     fitmentHint: p.fitmentHint,
     oemReference: p.oemReference,
+    condition: parseProductCondition(p.condition),
     isDemo: true, // Explicitly marked as demo
     isOem: p.sku.startsWith("BOSCH") || p.sku.startsWith("VALEO"),
     availableStock: undefined,
@@ -473,6 +508,7 @@ function searchProductsFromDemoCatalog(
       category: params.category,
       subcategory: params.subcategory,
       brand: params.brand,
+      condition: params.condition,
       minPrice: params.minPrice,
       maxPrice: params.maxPrice,
       make: params.make,
@@ -630,6 +666,12 @@ async function getProductFromDatabase(
     primaryImageUrl: images[0]?.url ?? null,
     fitmentHint: pAttrs?.fitmentHint ?? null,
     oemReference: pAttrs?.oemReference ?? null,
+    condition: parseProductCondition(pAttrs?.condition),
+    conditionGrade: pAttrs?.conditionGrade ?? null,
+    conditionNotes: pAttrs?.conditionNotes ?? null,
+    visibleWearOrDefects: pAttrs?.visibleWearOrDefects ?? null,
+    testedStatus: pAttrs?.testedStatus ?? null,
+    warrantyDetails: pAttrs?.warrantyDetails ?? null,
     isDemo: false,
     isOem: Boolean(pAttrs?.isOem),
     images: (images as ImageDbRow[]).map((img) => ({
@@ -681,6 +723,12 @@ function getProductFromDemoCatalog(idOrSlug: string): ProductDetailDTO | null {
     primaryImageUrl: null,
     fitmentHint: demoProduct.fitmentHint,
     oemReference: demoProduct.oemReference,
+    condition: parseProductCondition(demoProduct.condition),
+    conditionGrade: demoProduct.conditionGrade ?? null,
+    conditionNotes: demoProduct.conditionNotes ?? null,
+    visibleWearOrDefects: demoProduct.visibleWearOrDefects ?? null,
+    testedStatus: demoProduct.testedStatus ?? null,
+    warrantyDetails: demoProduct.warrantyDetails ?? null,
     isDemo: true,
     isOem: true,
     images: [],
@@ -830,6 +878,7 @@ function createEmptyResponse(params: ValidatedProductSearchParams): CatalogueSea
       category: params.category,
       subcategory: params.subcategory,
       brand: params.brand,
+      condition: params.condition,
       minPrice: params.minPrice,
       maxPrice: params.maxPrice,
       make: params.make,
@@ -843,6 +892,7 @@ function createEmptyResponse(params: ValidatedProductSearchParams): CatalogueSea
       categories: [],
       brands: [],
       vehicleMakes: [],
+      conditions: [],
       priceRange: { min: 0, max: 0 },
     },
     isDemoSource: false,
@@ -861,12 +911,19 @@ function createDatabaseUnavailableResponse(
 function buildDemoFacets(demoProducts: typeof DEMO_FEATURED_PRODUCTS): FilterFacetsDTO {
   const brandCountMap = new Map<string, number>();
   const categoryCountMap = new Map<string, number>();
+  let newCount = 0;
+  let usedCount = 0;
   let minPrice = Infinity;
   let maxPrice = -Infinity;
 
   for (const p of demoProducts) {
     brandCountMap.set(p.brand, (brandCountMap.get(p.brand) ?? 0) + 1);
     categoryCountMap.set(p.categoryName, (categoryCountMap.get(p.categoryName) ?? 0) + 1);
+    if (p.condition === "new") {
+      newCount++;
+    } else if (p.condition === "used") {
+      usedCount++;
+    }
     if (p.priceMinor < minPrice) minPrice = p.priceMinor;
     if (p.priceMinor > maxPrice) maxPrice = p.priceMinor;
   }
@@ -889,10 +946,16 @@ function buildDemoFacets(demoProducts: typeof DEMO_FEATURED_PRODUCTS): FilterFac
     count: 4,
   }));
 
+  const conditionsFacet = [
+    { label: "New Spare Parts", value: "new", count: newCount },
+    { label: "Pre-Owned Spare Parts", value: "used", count: usedCount },
+  ];
+
   return {
     categories: categoriesFacet,
     brands: brandsFacet,
     vehicleMakes: vehicleMakesFacet,
+    conditions: conditionsFacet,
     priceRange: {
       min: Math.floor(minPrice / 100),
       max: Math.ceil(maxPrice / 100),
@@ -932,6 +995,21 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
       .from(vehicleMakes)
       .limit(10);
 
+    const conditionRows = await db
+      .select({
+        condition: sql<string>`${products.attributes}->>'condition'`,
+        count: count(products.id),
+      })
+      .from(products)
+      .groupBy(sql`${products.attributes}->>'condition'`);
+
+    const conditionCountMap = new Map<string, number>();
+    for (const row of conditionRows) {
+      if (row.condition) {
+        conditionCountMap.set(row.condition, Number(row.count));
+      }
+    }
+
     return {
       brands: (brandRows as FacetCountDbRow[]).map((b) => ({
         label: b.name,
@@ -948,6 +1026,18 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
         value: m.slug,
         count: 0,
       })),
+      conditions: [
+        {
+          label: "New Spare Parts",
+          value: "new",
+          count: conditionCountMap.get("new") ?? 0,
+        },
+        {
+          label: "Pre-Owned Spare Parts",
+          value: "used",
+          count: conditionCountMap.get("used") ?? 0,
+        },
+      ],
       priceRange: { min: 100, max: 50000 },
     };
   } catch {
@@ -955,6 +1045,10 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
       categories: [],
       brands: [],
       vehicleMakes: [],
+      conditions: [
+        { label: "New Spare Parts", value: "new", count: 0 },
+        { label: "Pre-Owned Spare Parts", value: "used", count: 0 },
+      ],
       priceRange: { min: 0, max: 0 },
     };
   }

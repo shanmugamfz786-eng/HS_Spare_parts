@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getProductByIdOrSlug } from "@/server/catalogue/catalogue-service";
 import { ProductGallery } from "@/components/catalogue/product-gallery";
 import { ProductPurchaseActions } from "@/components/catalogue/product-purchase-actions";
-import { ProductReviews } from "@/components/reviews/product-reviews";
+import { ProductTabs } from "@/components/catalogue/product-tabs";
 import { STORE_POLICY_CONFIG } from "@/lib/constants/store-config";
 import { formatMoney } from "@/lib/money";
 import {
@@ -12,11 +12,8 @@ import {
   Truck,
   RotateCcw,
   Info,
-  CheckCircle2,
-  AlertTriangle,
   Car,
-  Layers,
-  FileText,
+  Star,
 } from "lucide-react";
 
 interface ProductPageProps {
@@ -33,11 +30,18 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const savingsPercent =
+    product.compareAtPriceMinor && product.compareAtPriceMinor > product.priceMinor
+      ? Math.round(
+          ((product.compareAtPriceMinor - product.priceMinor) / product.compareAtPriceMinor) * 100
+        )
+      : null;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="mb-6">
-        <ol className="flex items-center space-x-2 text-xs text-gray-400">
+        <ol className="flex items-center space-x-2 text-xs text-gray-500">
           <li>
             <Link href="/" className="hover:text-ember transition-colors">
               Home
@@ -59,295 +63,260 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </Link>
           </li>
           <li>/</li>
-          <li className="text-paper font-semibold truncate max-w-xs">{product.name}</li>
+          <li className="text-gray-900 font-bold truncate max-w-xs">{product.name}</li>
         </ol>
       </nav>
 
       {/* Demo Catalogue Transparency Alert */}
       {product.isDemo && (
-        <div className="mb-8 p-3.5 rounded-brand bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold block text-paper">
+            <span className="font-bold block text-gray-900">
               Demo Catalogue Item
             </span>
-            <span className="text-gray-300">
+            <span className="text-gray-600">
               This product record is a demonstration layout component. Specifications and fitments
-              demonstrate the catalogue schema structure. Real inventory and verified compatibility
+              demonstrate the catalogue schema structure. Real inventory and catalogue compatibility
               records will be populated directly from PostgreSQL.
             </span>
           </div>
         </div>
       )}
 
-      {/* Product Top Grid: Gallery & Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
-        {/* Left Column: Product Image Gallery */}
-        <div>
-          <ProductGallery
-            images={product.images}
-            productName={product.name}
-            brandName={product.brandName}
-            sku={product.sku}
-            isOem={product.isOem}
-          />
-        </div>
+      {/* Primary Product Card: Gallery & Purchasing Console */}
+      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-sm p-6 sm:p-10 mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* Left Column: Product Image Gallery */}
+          <div className="lg:col-span-6">
+            <ProductGallery
+              images={product.images}
+              productName={product.name}
+              brandName={product.brandName}
+              sku={product.sku}
+              categorySlug={product.categorySlug}
+              isOem={product.isOem}
+            />
+          </div>
 
-        {/* Right Column: Key Details & Purchasing Actions */}
-        <div className="flex flex-col justify-between">
-          <div>
-            {/* Brand, Category & OEM Badge */}
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-ember">
-                  {product.brandName}
-                </span>
-                <span className="text-gray-600">•</span>
-                <span className="text-xs text-gray-400">{product.categoryName}</span>
+          {/* Right Column: Key Details & Purchasing Actions */}
+          <div className="lg:col-span-6 flex flex-col justify-between">
+            <div>
+              {/* Brand, Category & Condition Badges */}
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-ember">
+                    {product.brandName}
+                  </span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-xs font-semibold text-gray-500">{product.categoryName}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {product.condition === "used" ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-300 shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span>Pre-Owned</span>
+                    </span>
+                  ) : product.condition === "new" ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>Brand New</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-300 shadow-xs">
+                      <span>Condition Unclassified</span>
+                    </span>
+                  )}
+
+                  {product.isOem ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-800 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+                      <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
+                      <span>OEM Spec</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-medium text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
+                      Aftermarket
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {product.isOem ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success bg-success/15 px-2.5 py-0.5 rounded-pill border border-success/30">
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>OES Genuine</span>
-                </span>
-              ) : (
-                <span className="text-[11px] font-medium text-gray-400 bg-ink-raised px-2.5 py-0.5 rounded-pill border border-gray-800">
-                  Tier-1 Aftermarket
-                </span>
-              )}
-            </div>
+              {/* Product Title */}
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight mb-2 leading-tight">
+                {product.name}
+              </h1>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-paper tracking-tight mb-3">
-              {product.name}
-            </h1>
+              {/* Star Ratings & Review Counter */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center text-gray-300">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-4 h-4 text-gray-300" />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-500">No customer reviews yet</span>
+                <span className="text-gray-300">•</span>
+                <a href="#customer-reviews" className="text-xs text-ember hover:underline font-semibold">
+                  Write a review
+                </a>
+              </div>
 
-            {/* SKU and OEM References */}
-            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mb-6 font-mono">
-              <span className="bg-ink-raised px-2 py-1 rounded border border-gray-800">
-                SKU: <strong className="text-paper">{product.sku}</strong>
-              </span>
-              {product.oemReference && (
-                <span className="bg-ink-raised px-2 py-1 rounded border border-gray-800">
-                  OEM Ref: <strong className="text-paper">{product.oemReference}</strong>
+              {/* SKU and OEM References */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-6 font-mono">
+                <span className="bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-200">
+                  SKU: <strong className="text-gray-800">{product.sku}</strong>
                 </span>
-              )}
-            </div>
-
-            {/* Price Box */}
-            <div className="p-4 rounded-brand bg-ink-raised border border-gray-800 mb-6">
-              <div className="flex items-baseline gap-3 mb-1">
-                <span className="text-2xl sm:text-3xl font-black text-paper">
-                  {formatMoney(product.priceMinor)}
-                </span>
-                {product.compareAtPriceMinor && (
-                  <span className="text-sm text-gray-400 line-through">
-                    {formatMoney(product.compareAtPriceMinor)}
+                {product.oemReference && (
+                  <span className="bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-200">
+                    OEM Ref: <strong className="text-gray-800">{product.oemReference}</strong>
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-gray-400">
-                {STORE_POLICY_CONFIG.taxPolicy} • {STORE_POLICY_CONFIG.shippingClaim}
-              </span>
+
+              {/* Price Box */}
+              <div className="p-4 sm:p-5 rounded-xl bg-[#F8F9FA] border border-gray-200/90 mb-6">
+                <div className="flex items-baseline gap-3 mb-1">
+                  <span className="text-3xl sm:text-4xl font-black text-gray-900">
+                    {formatMoney(product.priceMinor)}
+                  </span>
+                  {product.compareAtPriceMinor && (
+                    <span className="text-base text-gray-400 line-through">
+                      {formatMoney(product.compareAtPriceMinor)}
+                    </span>
+                  )}
+                  {savingsPercent && (
+                    <span className="text-xs font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
+                      Save {savingsPercent}%
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500">
+                  {STORE_POLICY_CONFIG.taxPolicy} • {STORE_POLICY_CONFIG.shippingClaim}
+                </span>
+              </div>
+
+              {/* Product Condition & Disclosures Card */}
+              {product.condition === "used" ? (
+                <div className="p-4 sm:p-5 rounded-xl bg-amber-500/5 border border-amber-300/60 mb-6 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-200">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                      <span>Pre-Owned Condition Record</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                      Pre-Owned Part
+                    </span>
+                  </div>
+
+                  {product.conditionNotes ? (
+                    <div className="text-xs">
+                      <strong className="text-gray-900 block mb-0.5 font-semibold">Condition Notes:</strong>
+                      <p className="text-gray-700">{product.conditionNotes}</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">No intake condition notes recorded for this item.</p>
+                  )}
+
+                  {product.visibleWearOrDefects && (
+                    <div className="text-xs">
+                      <strong className="text-gray-900 block mb-0.5 font-semibold">Visible Wear &amp; Disclosures:</strong>
+                      <p className="text-gray-700">{product.visibleWearOrDefects}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/60 text-xs">
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Testing Status:</span>
+                      <span className="font-semibold text-gray-900">{product.testedStatus || "Not recorded / Untested"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[11px]">Warranty Coverage:</span>
+                      <span className="font-semibold text-gray-900">{product.warrantyDetails || "Not configured"}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : product.condition === "new" ? (
+                <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-300/60 mb-6 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <span>Condition: Brand New</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
+                      New Component
+                    </span>
+                  </div>
+                  {product.warrantyDetails ? (
+                    <p className="text-xs text-gray-600">{product.warrantyDetails}</p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 mb-6 space-y-1">
+                  <span className="text-xs font-bold text-gray-800 block">
+                    Condition Status: Unclassified
+                  </span>
+                  <p className="text-xs text-gray-500">
+                    This catalogue record does not have an explicit condition assigned. Please verify part specifications before purchase.
+                  </p>
+                </div>
+              )}
+
+              {/* Stock Availability Badge */}
+              <div className="flex items-center gap-2 mb-6">
+                {product.inStock ? (
+                  <div className="inline-flex items-center gap-2 text-xs font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span>In Stock — Dispatch Ready</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span>Out of Stock / Backorder</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Primary Fitment Scope Hint */}
+              {product.fitmentHint && (
+                <div className="rounded-xl bg-[#F8F9FA] border border-gray-200 p-4 mb-6 flex items-start gap-3">
+                  <Car className="w-5 h-5 text-ember flex-shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <span className="font-bold text-gray-900 block mb-0.5">
+                      Vehicle Fitment Scope
+                    </span>
+                    <span className="text-gray-600">{product.fitmentHint}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Product Variants (if available) */}
-            {product.variants.length > 1 && (
-              <div className="mb-6">
-                <label className="block text-xs font-bold uppercase tracking-wider text-paper mb-2">
-                  Available Variants / Positions
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {product.variants.map((v) => (
-                    <div
-                      key={v.id}
-                      className="px-3 py-1.5 rounded-brand bg-ink-raised border border-gray-700 text-xs text-paper flex items-center gap-2 cursor-pointer hover:border-ember"
-                    >
-                      <Layers className="w-3.5 h-3.5 text-ember" />
-                      <span>{v.sku}</span>
-                      {v.priceOverrideMinor && (
-                        <span className="text-ember font-bold">
-                          {formatMoney(v.priceOverrideMinor)}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+            {/* Purchasing Console */}
+            <div className="space-y-4 pt-6 border-t border-gray-200">
+              <ProductPurchaseActions
+                productId={product.id}
+                inStock={Boolean(product.inStock)}
+                isDemo={Boolean(product.isDemo)}
+              />
+
+              {/* Policy Trust Strip */}
+              <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-ember flex-shrink-0" />
+                  <span>Pan-India Courier Network</span>
                 </div>
-              </div>
-            )}
-
-            {/* Primary Fitment Scope Hint */}
-            {product.fitmentHint && (
-              <div className="rounded-brand bg-ink-raised border border-gray-800 p-3.5 mb-6 flex items-start gap-2.5">
-                <Car className="w-4 h-4 text-ember flex-shrink-0 mt-0.5" />
-                <div className="text-xs">
-                  <span className="font-bold text-paper block mb-0.5">
-                    Primary Application Scope
-                  </span>
-                  <span className="text-gray-300">{product.fitmentHint}</span>
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-ember flex-shrink-0" />
+                  <span>{STORE_POLICY_CONFIG.returnWindowDays}-Day Return Policy (Provisional)</span>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Purchasing Actions */}
-          <div className="space-y-4 pt-4 border-t border-gray-800">
-            <ProductPurchaseActions
-              productId={product.id}
-              inStock={Boolean(product.inStock)}
-              isDemo={Boolean(product.isDemo)}
-            />
-
-            {/* Policy Badges */}
-            <div className="grid grid-cols-2 gap-3 text-xs text-gray-400 pt-2">
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-ember flex-shrink-0" />
-                <span>Express Courier Dispatch (Provisional)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-ember flex-shrink-0" />
-                <span>{STORE_POLICY_CONFIG.returnWindowDays}-Day Return Policy (Provisional)</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Product Detail Lower Tabs / Specifications & Fitment Tables */}
-      <div className="space-y-10">
-        {/* 1. Description */}
-        {product.description && (
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 sm:p-8">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-ember flex items-center gap-2 mb-4 pb-2 border-b border-gray-800">
-              <FileText className="w-4 h-4" />
-              <span>Product Description & Engineering Overview</span>
-            </h2>
-            <div className="text-xs sm:text-sm text-gray-300 leading-relaxed space-y-3">
-              <p>{product.description}</p>
-            </div>
-          </div>
-        )}
-
-        {/* 2. Technical Specifications Table */}
-        <div className="rounded-card bg-ink-raised border border-gray-800 p-6 sm:p-8">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-ember flex items-center gap-2 mb-4 pb-2 border-b border-gray-800">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Technical Specifications</span>
-          </h2>
-
-          {product.specifications.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider">
-                    <th className="py-2.5 px-3">Specification Property</th>
-                    <th className="py-2.5 px-3">Engineering Value / Standard</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800/60">
-                  {product.specifications.map((spec, i) => (
-                    <tr key={i} className="hover:bg-ink/50 transition-colors">
-                      <td className="py-2.5 px-3 font-semibold text-gray-300">{spec.name}</td>
-                      <td className="py-2.5 px-3 text-paper font-mono">{spec.value}</td>
-                    </tr>
-                  ))}
-                  {product.weightGrams && (
-                    <tr className="hover:bg-ink/50 transition-colors">
-                      <td className="py-2.5 px-3 font-semibold text-gray-300">Net Weight</td>
-                      <td className="py-2.5 px-3 text-paper font-mono">
-                        {product.weightGrams} grams ({product.weightGrams / 1000} kg)
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-xs text-gray-400">
-              Standard manufacturer specifications apply. Refer to the OEM part number for exact
-              tolerance values.
-            </p>
-          )}
-        </div>
-
-        {/* 3. Verified Vehicle Fitment Matrix */}
-        <div className="rounded-card bg-ink-raised border border-gray-800 p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-gray-800">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-ember flex items-center gap-2">
-              <Car className="w-4 h-4" />
-              <span>Verified Vehicle Compatibility Matrix</span>
-            </h2>
-
-            <span className="text-[11px] text-gray-400">
-              {product.fitments.length} verified applications
-            </span>
-          </div>
-
-          {product.fitments.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider">
-                    <th className="py-2.5 px-3">Make & Model</th>
-                    <th className="py-2.5 px-3">Generation / Engine</th>
-                    <th className="py-2.5 px-3">Year Model Range</th>
-                    <th className="py-2.5 px-3">Compatibility Standard</th>
-                    <th className="py-2.5 px-3">Application Notes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800/60">
-                  {product.fitments.map((fit) => (
-                    <tr key={fit.id} className="hover:bg-ink/50 transition-colors">
-                      <td className="py-3 px-3 font-bold text-paper">
-                        {fit.makeName} {fit.modelName}
-                      </td>
-                      <td className="py-3 px-3 text-gray-300">
-                        {fit.variantGeneration || "Standard"} • {fit.variantEngine || "All Engines"}
-                      </td>
-                      <td className="py-3 px-3 text-gray-300 font-mono">
-                        {fit.yearStart} – {fit.yearEnd ?? "Present"}
-                      </td>
-                      <td className="py-3 px-3">
-                        {fit.verifiedStatus === "verified" ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Verified OEM</span>
-                          </span>
-                        ) : fit.verifiedStatus === "oem_cross_ref" ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400">
-                            <Info className="w-3.5 h-3.5" />
-                            <span>Cross-Reference</span>
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-[11px]">Unverified Standard</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3 text-gray-400 text-[11px]">
-                        {fit.notes || "Direct drop-in replacement"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-4 rounded-brand bg-ink border border-gray-800 text-xs text-gray-400 flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-paper block">
-                  Vehicle Compatibility Unconfirmed
-                </span>
-                <span>
-                  No verified fitment record exists in the database for this specific SKU.
-                  Consult your vehicle service manual or verify the OEM reference before ordering.
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Customer Reviews Section */}
-        <ProductReviews productId={product.id} />
+      {/* Structured Information Tabs */}
+      <div className="mb-12">
+        <ProductTabs product={product} />
       </div>
     </div>
   );

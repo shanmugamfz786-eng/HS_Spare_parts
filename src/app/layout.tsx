@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "HS Spare Parts — Right Part. Right Price. Guaranteed Fitment.",
   },
   description:
-    "Discover genuine and verified automotive spare parts for your car. Browse engine parts, suspension, steering, brakes, and more with guaranteed compatibility.",
+    "Discover quality automotive spare parts for your car. Browse engine parts, suspension, steering, brakes, and more with vehicle fitment assistance.",
   keywords: [
     "automotive spare parts",
     "car parts online",
@@ -39,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
-      <body className="min-h-screen bg-ink text-paper antialiased flex flex-col selection:bg-ember selection:text-paper">
+    <html lang="en" className="scroll-smooth">
+      <body className="min-h-screen bg-[#F8F9FA] text-charcoal antialiased flex flex-col selection:bg-ember selection:text-paper">
         <Header />
         <main className="flex-1 flex flex-col">
           {children}

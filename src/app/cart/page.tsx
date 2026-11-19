@@ -62,22 +62,22 @@ export default function CartPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Page Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <nav aria-label="Breadcrumb" className="mb-2">
-            <ol className="flex items-center space-x-2 text-xs text-gray-400">
+            <ol className="flex items-center space-x-2 text-xs text-gray-500">
               <li>
                 <Link href="/" className="hover:text-ember transition-colors">
                   Home
                 </Link>
               </li>
               <li>/</li>
-              <li className="text-paper font-semibold">Shopping Cart</li>
+              <li className="text-gray-900 font-bold">Shopping Cart</li>
             </ol>
           </nav>
-          <h1 className="text-2xl sm:text-3xl font-black text-paper tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
             Shopping Cart
           </h1>
         </div>
@@ -86,7 +86,7 @@ export default function CartPage() {
           type="button"
           onClick={fetchCart}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ember transition-colors self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-ember transition-colors self-start sm:self-auto"
           title="Revalidate prices and stock"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
@@ -98,19 +98,19 @@ export default function CartPage() {
       {isLoading && (
         <div className="py-20 text-center">
           <Loader2 className="w-8 h-8 animate-spin text-ember mx-auto mb-3" />
-          <p className="text-xs text-gray-400">Loading your shopping cart...</p>
+          <p className="text-xs text-gray-500">Loading your shopping cart...</p>
         </div>
       )}
 
       {/* Error State */}
       {!isLoading && errorMessage && (
-        <div className="rounded-card bg-red-950/20 border border-red-800 p-6 text-center max-w-lg mx-auto my-8">
-          <h2 className="text-base font-bold text-red-400 mb-2">Cart Error</h2>
-          <p className="text-xs text-gray-300 mb-4">{errorMessage}</p>
+        <div className="rounded-2xl bg-red-50 border border-red-200 p-6 text-center max-w-lg mx-auto my-8">
+          <h2 className="text-base font-bold text-red-700 mb-2">Cart Error</h2>
+          <p className="text-xs text-red-600 mb-4">{errorMessage}</p>
           <button
             type="button"
             onClick={fetchCart}
-            className="btn-primary py-2 px-4 text-xs font-semibold"
+            className="btn-primary py-2 px-4 text-xs font-semibold rounded-lg"
           >
             Retry
           </button>
@@ -119,17 +119,17 @@ export default function CartPage() {
 
       {/* Empty State */}
       {!isLoading && !errorMessage && cart && cart.items.length === 0 && (
-        <div className="rounded-card bg-ink-raised border border-gray-800 p-12 text-center max-w-lg mx-auto my-8 shadow-xl">
-          <div className="w-16 h-16 rounded-full bg-ink border border-gray-800 flex items-center justify-center text-gray-500 mx-auto mb-4">
-            <ShoppingCart className="w-8 h-8 text-gray-400" />
+        <div className="rounded-2xl bg-white border border-gray-200/90 p-12 text-center max-w-lg mx-auto my-8 shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 mx-auto mb-4">
+            <ShoppingCart className="w-8 h-8" />
           </div>
-          <h2 className="text-lg font-bold text-paper mb-1">Your Cart is Currently Empty</h2>
-          <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 mb-1">Your Cart is Currently Empty</h2>
+          <p className="text-xs text-gray-500 mb-6 leading-relaxed">
             You haven&apos;t added any automotive parts to your cart yet. Explore our genuine suspension, brake, engine, and electrical spares.
           </p>
           <Link
             href="/"
-            className="btn-primary inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-wider shadow-md"
+            className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-wider shadow-md rounded-xl"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Start Shopping</span>
@@ -143,10 +143,10 @@ export default function CartPage() {
           {/* Left Column: Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-gray-400">
+              <span className="text-xs font-semibold text-gray-500">
                 Cart Items ({cart.totalQuantity} items)
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-500">
                 Server-validated prices
               </span>
             </div>
@@ -162,14 +162,23 @@ export default function CartPage() {
               ))}
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            {/* Sub-actions */}
+            <div className="flex items-center justify-between pt-4">
               <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ember transition-colors"
+                href="/categories"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-ember hover:text-ember-deep transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-4 h-4" />
                 <span>Continue Shopping</span>
               </Link>
+
+              <button
+                type="button"
+                onClick={handleClearCart}
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Empty Cart
+              </button>
             </div>
           </div>
 

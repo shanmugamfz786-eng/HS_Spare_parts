@@ -10,7 +10,7 @@ import { MobileFilterDrawer } from "@/components/catalogue/mobile-filter-drawer"
 import { SortSelector } from "@/components/catalogue/sort-selector";
 import { Pagination } from "@/components/catalogue/pagination";
 import { EmptyState } from "@/components/catalogue/empty-state";
-import { Info, ChevronRight } from "lucide-react";
+import { Info, ChevronRight, Layers } from "lucide-react";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -18,6 +18,17 @@ interface CategoryPageProps {
   }>;
   searchParams: Promise<RawProductSearchParams>;
 }
+
+const CATEGORY_BANNER_IMAGES: Record<string, string> = {
+  brake: "/images/brakes.jpg",
+  "suspension-steering": "/images/suspension.jpg",
+  "engine-parts": "/images/engine.jpg",
+  transmission: "/images/transmission.jpg",
+  hvac: "/images/cooling.jpg",
+  electrical: "/images/electrical.jpg",
+  "body-parts": "/images/body.jpg",
+  accessories: "/images/accessories.jpg",
+};
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { categorySlug } = await params;
@@ -37,10 +48,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const basePath = `/categories/${categorySlug}`;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="mb-6">
-        <ol className="flex items-center space-x-2 text-xs text-gray-400">
+        <ol className="flex items-center space-x-2 text-xs text-gray-500">
           <li>
             <Link href="/" className="hover:text-ember transition-colors">
               Home
@@ -53,91 +64,121 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             </Link>
           </li>
           <li>/</li>
-          <li className="text-paper font-semibold">{category.name}</li>
+          <li className="text-gray-900 font-bold">{category.name}</li>
         </ol>
       </nav>
 
       {/* Demo Notice Banner */}
       {result.isDemoSource && (
-        <div className="mb-6 p-3 rounded-brand bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 flex items-start gap-2">
-          <Info className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <span>
-            Demo Mode: Showing simulated catalog items for {category.name}. Real inventory
-            records connect upon PostgreSQL database migration.
+            <strong>Demo Catalogue Mode:</strong> Showing simulated catalog items for {category.name}. Real inventory
+            records connect upon live database deployment.
           </span>
         </div>
       )}
 
-      {/* Category Hero Banner */}
-      <div className="rounded-card bg-gradient-to-r from-ink-raised via-ink to-ink border border-gray-800 p-6 sm:p-10 mb-8">
-        <div className="max-w-2xl">
-          <span className="text-xs font-bold uppercase tracking-wider text-ember block mb-2">
-            Vehicle Subsystem Assembly
-          </span>
-          <h1 className="text-2xl sm:text-4xl font-black text-paper tracking-tight mb-3">
+      {/* Premium Dark Category Banner with Image */}
+      <div className="rounded-2xl bg-gradient-to-r from-[#090D18] via-[#111827] to-[#090D18] border border-gray-800 text-white p-6 sm:p-8 mb-8 shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-ember/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="max-w-xl">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ember/15 border border-ember/30 text-ember text-xs font-bold uppercase tracking-wider mb-3">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Vehicle Subsystem Assembly</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-3">
             {category.name}
           </h1>
           <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-            Discover verified OEM and OES replacement components for {category.name.toLowerCase()}.
-            Precision fitment for popular Indian passenger vehicles.
+            Discover OEM and aftermarket replacement components for {category.name.toLowerCase()}.
+            Vehicle fitment assistance for popular Indian passenger vehicles.
           </p>
         </div>
+
+        {CATEGORY_BANNER_IMAGES[category.slug] && (
+          <div className="w-full md:w-64 h-36 rounded-xl overflow-hidden border border-gray-700/80 shadow-lg flex-shrink-0 relative bg-black">
+            <img
+              src={CATEGORY_BANNER_IMAGES[category.slug]}
+              alt={category.name}
+              className="w-full h-full object-cover object-center opacity-90"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column: Subcategories & Filters */}
         <div className="hidden lg:block lg:col-span-1 space-y-6">
           {/* Subcategories Directory */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-paper mb-3 pb-2 border-b border-gray-800">
+          <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-5 text-gray-900">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100">
               Subcategories
             </h2>
-            <ul className="space-y-1 text-xs text-gray-300">
+            <ul className="space-y-1 text-xs text-gray-600">
               {category.subcategories.map((sub) => (
                 <li key={sub.slug}>
                   <Link
                     href={`/categories/${category.slug}/${sub.slug}`}
-                    className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-ink hover:text-ember transition-colors group"
+                    className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-gray-50 hover:text-ember transition-colors group"
                   >
                     <span>{sub.name}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover:text-ember transition-colors" />
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-ember group-hover:translate-x-0.5 transition-all" />
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Facet Filters */}
-          <Suspense fallback={<div className="h-64 rounded bg-ink-raised animate-pulse" />}>
+          {/* Faceted Filters */}
+          <Suspense fallback={<div className="h-96 rounded-xl bg-white animate-pulse" />}>
             <ProductFilters facets={result.facets} basePath={basePath} />
           </Suspense>
         </div>
 
-        {/* Right Column: Products Stream */}
-        <div className="lg:col-span-3">
+        {/* Right Column: Active Products Viewport */}
+        <div className="lg:col-span-3 space-y-6">
           {/* Controls Bar */}
-          <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-800">
-            <div className="flex items-center gap-3">
-              <MobileFilterDrawer facets={result.facets} basePath={basePath} />
-              <span className="text-xs font-semibold text-gray-400">
-                Found <span className="text-paper font-bold">{result.totalCount}</span> items in{" "}
-                {category.name}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200/90 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between sm:justify-start gap-4">
+              <span className="text-xs sm:text-sm text-gray-600">
+                Showing <strong className="text-gray-900 font-bold">{result.products.length}</strong> of{" "}
+                <strong className="text-gray-900 font-bold">{result.totalCount}</strong> parts
               </span>
+
+              {/* Mobile Filter Trigger */}
+              <div className="lg:hidden">
+                <MobileFilterDrawer
+                  facets={result.facets}
+                  totalCount={result.totalCount}
+                  basePath={basePath}
+                />
+              </div>
             </div>
 
-            <SortSelector currentSort={result.activeFilters.sort} basePath={basePath} />
+            <div className="flex items-center gap-3">
+              <SortSelector currentSort={result.activeFilters.sort} />
+            </div>
           </div>
 
-          {/* Products Grid */}
-          {result.products.length > 0 ? (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {result.products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+          {/* Products Grid or Empty State */}
+          {result.products.length === 0 ? (
+            <EmptyState
+              categorySlug={categorySlug}
+              activeFiltersCount={Object.keys(result.activeFilters).length}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {result.products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
 
-              {/* Server-Side Pagination */}
+          {/* Pagination Controls */}
+          {result.totalPages > 1 && (
+            <div className="pt-6">
               <Pagination
                 currentPage={result.page}
                 totalPages={result.totalPages}
@@ -146,14 +187,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 basePath={basePath}
               />
             </div>
-          ) : (
-            <EmptyState
-              title={`No parts found in ${category.name}`}
-              message="No parts in this category match your selected brand or price filters. Try resetting filters."
-              isDatabaseSource={!result.isDemoSource}
-              isDatabaseUnavailable={result.isDatabaseUnavailable}
-              onResetHref={basePath}
-            />
           )}
         </div>
       </div>

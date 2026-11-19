@@ -36,6 +36,9 @@ export const passwordResetRequestSchema = z.object({
 
 export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
 
+export const GENERIC_PASSWORD_RESET_SUCCESS_MESSAGE =
+  "If an account matches that email address, password recovery instructions will be available when email delivery is configured.";
+
 export const passwordResetConfirmSchema = z.object({
   token: z.string().min(32, "Invalid or malformed reset token"),
   newPassword: strongPasswordSchema,

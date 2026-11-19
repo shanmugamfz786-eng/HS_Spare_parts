@@ -55,11 +55,11 @@ export function Pagination({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-800 text-xs">
-      <span className="text-gray-400">
-        Showing <span className="text-paper font-semibold">{startItem}</span>–
-        <span className="text-paper font-semibold">{endItem}</span> of{" "}
-        <span className="text-paper font-semibold">{totalCount}</span> spare parts
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200 text-xs">
+      <span className="text-gray-500">
+        Showing <span className="text-gray-900 font-bold">{startItem}</span>–
+        <span className="text-gray-900 font-bold">{endItem}</span> of{" "}
+        <span className="text-gray-900 font-bold">{totalCount}</span> spare parts
       </span>
 
       <nav aria-label="Pagination" className="flex items-center gap-1.5">
@@ -67,14 +67,14 @@ export function Pagination({
         {currentPage > 1 ? (
           <Link
             href={getPageUrl(currentPage - 1)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-brand bg-ink-raised border border-gray-700 text-paper font-semibold hover:border-ember transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-800 font-semibold hover:border-ember shadow-xs transition-colors"
             aria-label="Go to previous page"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
             <span>Prev</span>
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-brand bg-ink border border-gray-800 text-gray-600 cursor-not-allowed">
+          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">
             <ChevronLeft className="w-3.5 h-3.5" />
             <span>Prev</span>
           </span>
@@ -85,7 +85,7 @@ export function Pagination({
           {pageNumbers.map((page, index) => {
             if (page === "...") {
               return (
-                <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
+                <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
                   ...
                 </span>
               );
@@ -98,10 +98,10 @@ export function Pagination({
               <Link
                 key={pNum}
                 href={getPageUrl(pNum)}
-                className={`min-w-[32px] h-8 flex items-center justify-center rounded-brand text-xs font-bold transition-colors ${
+                className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
                   isCurrent
-                    ? "bg-ember text-paper"
-                    : "bg-ink-raised border border-gray-700 text-paper hover:border-ember"
+                    ? "bg-ember text-white shadow-xs"
+                    : "bg-white border border-gray-300 text-gray-800 hover:border-ember shadow-xs"
                 }`}
                 aria-current={isCurrent ? "page" : undefined}
                 aria-label={`Page ${pNum}`}
@@ -116,14 +116,14 @@ export function Pagination({
         {currentPage < totalPages ? (
           <Link
             href={getPageUrl(currentPage + 1)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-brand bg-ink-raised border border-gray-700 text-paper font-semibold hover:border-ember transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-800 font-semibold hover:border-ember shadow-xs transition-colors"
             aria-label="Go to next page"
           >
             <span>Next</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-brand bg-ink border border-gray-800 text-gray-600 cursor-not-allowed">
+          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed">
             <span>Next</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </span>

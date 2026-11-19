@@ -162,7 +162,7 @@ export default function CheckoutPage() {
     if (!quote.serviceability.isConfigured || !quote.serviceability.isServiceable) {
       setErrorMessage(
         quote.serviceability.message ||
-          "Shipping is unconfigured. Order placement is paused until shipping is activated in Phase 7."
+          "Online ordering is currently being prepared. You can continue browsing products and adding items to your cart."
       );
       return;
     }
@@ -205,7 +205,7 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-ember mx-auto mb-3" />
-        <p className="text-xs text-gray-400">Preparing your secure checkout quote...</p>
+        <p className="text-xs text-gray-500">Preparing your secure checkout quote...</p>
       </div>
     );
   }
@@ -214,31 +214,31 @@ export default function CheckoutPage() {
   if (isSuccess && createdOrderRef) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto mb-6">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto mb-6">
           <CheckCircle2 className="w-8 h-8" />
         </div>
-        <h1 className="text-2xl font-black text-paper mb-2">Order Confirmed!</h1>
-        <p className="text-sm text-gray-400 mb-6">
+        <h1 className="text-2xl font-black text-gray-900 mb-2">Order Confirmed!</h1>
+        <p className="text-sm text-gray-600 mb-6">
           Thank you for your order. Your items have been securely reserved.
         </p>
 
-        <div className="rounded-card bg-ink-raised border border-gray-800 p-6 max-w-md mx-auto mb-8 text-left space-y-3">
-          <div className="flex justify-between items-center pb-3 border-b border-gray-800">
-            <span className="text-xs text-gray-400">Order Reference</span>
+        <div className="rounded-2xl bg-white border border-gray-200 shadow-sm p-6 max-w-md mx-auto mb-8 text-left space-y-3">
+          <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+            <span className="text-xs text-gray-500">Order Reference</span>
             <span className="text-sm font-bold text-ember font-mono">{createdOrderRef}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">Status</span>
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <span className="text-xs text-gray-500">Status</span>
+            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
               Pending Payment
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">Stock Reservation</span>
-            <span className="text-xs text-emerald-400 font-semibold">Active (30 mins)</span>
+            <span className="text-xs text-gray-500">Stock Reservation</span>
+            <span className="text-xs text-emerald-700 font-semibold">Active (30 mins)</span>
           </div>
-          <div className="pt-2 text-[11px] text-gray-400 border-t border-gray-800 leading-relaxed">
-            Payment integration (Razorpay) will be connected in Phase 7. Your order is safely logged and inventory is allocated.
+          <div className="pt-2 text-[11px] text-gray-500 border-t border-gray-100 leading-relaxed">
+            Your order is safely logged and inventory is allocated. You will receive an update once processing begins.
           </div>
         </div>
 
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
           </Link>
           <Link
             href="/"
-            className="btn-outline py-2.5 px-6 text-xs font-bold uppercase tracking-wider"
+            className="btn-secondary py-2.5 px-6 text-xs font-bold uppercase tracking-wider"
           >
             Continue Shopping
           </Link>
@@ -263,16 +263,16 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Checkout Header */}
-      <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-800">
+      <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-black text-paper tracking-tight">Secure Checkout</h1>
-          <p className="text-xs text-gray-400 mt-1">
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Secure Checkout</h1>
+          <p className="text-xs text-gray-500 mt-1">
             Authoritative server-validated checkout quote & inventory reservation
           </p>
         </div>
         <Link
           href="/cart"
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ember transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-ember transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Return to Cart</span>
@@ -281,8 +281,8 @@ export default function CheckoutPage() {
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="p-4 mb-6 rounded-card bg-red-950/20 border border-red-800 text-xs text-red-300 flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="p-4 mb-6 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block mb-0.5">Checkout Notice:</span>
             <span>{errorMessage}</span>
@@ -295,13 +295,13 @@ export default function CheckoutPage() {
         {/* Left 2 Columns: Delivery Address & Fulfilment */}
         <div className="lg:col-span-2 space-y-6">
           {/* Step 1: Delivery Address */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 space-y-4">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-ember/20 text-ember text-xs font-black flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-ember/10 text-ember text-xs font-black flex items-center justify-center">
                   1
                 </div>
-                <h2 className="text-base font-bold text-paper">Delivery Address</h2>
+                <h2 className="text-base font-bold text-gray-900">Delivery Address</h2>
               </div>
               <button
                 type="button"
@@ -314,13 +314,13 @@ export default function CheckoutPage() {
             </div>
 
             {addresses.length === 0 ? (
-              <div className="p-4 rounded-brand border border-dashed border-gray-700 text-center text-xs text-gray-400">
-                <MapPin className="w-6 h-6 text-gray-500 mx-auto mb-2" />
-                <p className="mb-2">No delivery addresses found in your address book.</p>
+              <div className="p-6 rounded-xl border border-dashed border-gray-300 text-center text-xs text-gray-500 bg-gray-50">
+                <MapPin className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                <p className="mb-3">No delivery addresses found in your address book.</p>
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(true)}
-                  className="btn-primary py-1.5 px-3 text-xs"
+                  className="btn-primary py-1.5 px-3.5 text-xs"
                 >
                   Add Shipping Address
                 </button>
@@ -333,18 +333,18 @@ export default function CheckoutPage() {
                     <label
                       key={addr.id}
                       onClick={() => handleSelectAddress(addr.id)}
-                      className={`block p-4 rounded-card border cursor-pointer transition-all ${
+                      className={`block p-4 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "bg-ink border-ember text-paper shadow-md"
-                          : "bg-ink/50 border-gray-800 text-gray-400 hover:border-gray-700"
+                          ? "bg-orange-50/40 border-ember text-gray-900 shadow-sm ring-1 ring-ember"
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-paper">{addr.recipient}</span>
+                            <span className="font-bold text-sm text-gray-900">{addr.recipient}</span>
                             {addr.isDefault && (
-                              <span className="text-[10px] uppercase font-bold bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] uppercase font-bold bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
                                 Default
                               </span>
                             )}
@@ -354,14 +354,14 @@ export default function CheckoutPage() {
                           <p className="text-xs">
                             {addr.city}, {addr.stateRegion} — <span className="font-mono font-semibold">{addr.postalCode}</span>
                           </p>
-                          <p className="text-xs text-gray-400">Phone: {addr.phone}</p>
+                          <p className="text-xs text-gray-500">Phone: {addr.phone}</p>
                         </div>
                         <input
                           type="radio"
                           name="selectedAddress"
                           checked={isSelected}
                           onChange={() => handleSelectAddress(addr.id)}
-                          className="mt-1 text-ember focus:ring-ember"
+                          className="mt-1 text-ember focus:ring-ember accent-[#F45A1B]"
                         />
                       </div>
                     </label>
@@ -372,36 +372,43 @@ export default function CheckoutPage() {
           </div>
 
           {/* Step 2: Shipping & Delivery Serviceability */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 space-y-3">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-ember/20 text-ember text-xs font-black flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-ember/10 text-ember text-xs font-black flex items-center justify-center">
                 2
               </div>
-              <h2 className="text-base font-bold text-paper">Shipping & Serviceability</h2>
+              <h2 className="text-base font-bold text-gray-900">Shipping & Serviceability</h2>
             </div>
-            <div className="p-3.5 rounded-brand bg-ink border border-gray-800 text-xs text-gray-300 space-y-1.5">
+            <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-700 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-paper">Surface Road Delivery</span>
-                <span className="font-bold text-emerald-400 uppercase text-[11px]">Free Standard Shipping</span>
+                <span className="font-bold text-gray-900">Standard Delivery</span>
+                <span className="font-bold text-gray-500 uppercase text-[11px]">
+                  {quote?.serviceability.isServiceable
+                    ? quote.serviceability.shippingFeeMinor === 0
+                      ? "Free Standard Shipping"
+                      : formatMoney(quote.serviceability.shippingFeeMinor)
+                    : "Unavailable"}
+                </span>
               </div>
-              <p className="text-gray-400 leading-relaxed text-[11px]">
-                {quote?.serviceability.message || "Standard surface road delivery across pan-India postal codes."}
+              <p className="text-gray-500 leading-relaxed text-[11px]">
+                {quote?.serviceability.message ||
+                  "Online ordering is currently being prepared. You can continue browsing products and adding items to your cart."}
               </p>
             </div>
           </div>
 
           {/* Step 3: Payment Notice */}
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 space-y-3">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-ember/20 text-ember text-xs font-black flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-ember/10 text-ember text-xs font-black flex items-center justify-center">
                 3
               </div>
-              <h2 className="text-base font-bold text-paper">Payment Method</h2>
+              <h2 className="text-base font-bold text-gray-900">Payment & Ordering Status</h2>
             </div>
-            <div className="p-4 rounded-brand bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
-              <span className="font-bold block">Phase 6 Checkout Boundary:</span>
-              <p className="text-gray-300 text-[11px] leading-relaxed">
-                Placing this order creates an authoritative order in <strong>Pending Payment</strong> status and securely reserves available stock. Direct online gateway checkout (Razorpay, UPI, Netbanking) is scheduled for Phase 7.
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <span className="font-bold block">Online Ordering Status:</span>
+              <p className="text-amber-800 text-[11px] leading-relaxed">
+                Online ordering is currently being prepared. You can continue browsing products and adding items to your cart.
               </p>
             </div>
           </div>
@@ -409,67 +416,67 @@ export default function CheckoutPage() {
 
         {/* Right Column: Quote Summary */}
         <div className="lg:col-span-1">
-          <div className="rounded-card bg-ink-raised border border-gray-800 p-6 space-y-6 sticky top-24">
-            <h2 className="text-base font-bold text-paper pb-3 border-b border-gray-800">
+          <div className="rounded-2xl bg-white border border-gray-200/90 shadow-sm p-6 space-y-6 sticky top-24">
+            <h2 className="text-base font-bold text-gray-900 pb-3 border-b border-gray-200">
               Order Quote Summary
             </h2>
 
             {/* Items List Preview */}
             <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
               {quote?.items.map((item) => (
-                <div key={item.cartItemId} className="flex items-start justify-between text-xs pb-2 border-b border-gray-800/60">
+                <div key={item.cartItemId} className="flex items-start justify-between text-xs pb-2 border-b border-gray-100">
                   <div className="space-y-0.5 max-w-[70%]">
-                    <p className="font-semibold text-paper truncate">{item.productName}</p>
-                    <p className="text-[11px] text-gray-400">Qty: {item.quantity} × {formatMoney(item.unitPriceMinor)}</p>
+                    <p className="font-semibold text-gray-900 truncate">{item.productName}</p>
+                    <p className="text-[11px] text-gray-500">Qty: {item.quantity} × {formatMoney(item.unitPriceMinor)}</p>
                   </div>
-                  <span className="font-mono font-bold text-paper">{formatMoney(item.lineTotalMinor)}</span>
+                  <span className="font-mono font-bold text-gray-900">{formatMoney(item.lineTotalMinor)}</span>
                 </div>
               ))}
             </div>
 
             {/* Price Breakdown */}
-            <div className="space-y-2 text-xs text-gray-300 border-t border-gray-800 pt-4">
+            <div className="space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
               <div className="flex justify-between">
-                <span className="text-gray-400">Items Subtotal</span>
-                <span className="font-mono font-semibold text-paper">{formatMoney(quote?.subtotalMinor ?? 0)}</span>
+                <span className="text-gray-500">Items Subtotal</span>
+                <span className="font-mono font-semibold text-gray-900">{formatMoney(quote?.subtotalMinor ?? 0)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Delivery Charge</span>
-                <span className="font-mono font-semibold text-paper">
-                  {quote?.serviceability.isConfigured
+                <span className="text-gray-500">Delivery Charge</span>
+                <span className="font-mono font-semibold text-gray-900">
+                  {quote?.serviceability.isConfigured && quote.serviceability.isServiceable
                     ? quote.serviceability.shippingFeeMinor === 0
                       ? "FREE"
                       : formatMoney(quote.serviceability.shippingFeeMinor)
-                    : "Unconfigured"}
+                    : "—"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Taxes (GST)</span>
-                <span className="font-mono text-gray-400 italic">Included in retail price</span>
+                <span className="text-gray-500">Taxes (GST)</span>
+                <span className="font-mono text-gray-500 italic">Included in retail price</span>
               </div>
-              <div className="flex justify-between pt-3 border-t border-gray-800 text-sm font-bold">
-                <span className="text-paper">Total Payable</span>
-                <span className="font-mono text-base font-black text-paper">{formatMoney(quote?.totalMinor ?? 0)}</span>
+              <div className="flex justify-between pt-3 border-t border-gray-100 text-sm font-bold">
+                <span className="text-gray-900">Total Payable</span>
+                <span className="font-mono text-base font-black text-gray-900">{formatMoney(quote?.totalMinor ?? 0)}</span>
               </div>
             </div>
 
             {/* Price Changed Stale Quote Reconfirmation Banner (Defect B) */}
             {priceChangedNotice && (
-              <div className="p-3.5 rounded bg-amber-950/40 border border-amber-500/60 text-amber-200 text-xs space-y-2">
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-2">
                 <div className="flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-amber-300">Catalogue Price or Cart Updated</p>
-                    <p className="mt-1 text-[11px] text-gray-300 leading-relaxed">
+                    <p className="font-bold text-amber-900">Catalogue Price or Cart Updated</p>
+                    <p className="mt-1 text-[11px] text-amber-800 leading-relaxed">
                       {priceChangedNotice}
                     </p>
                   </div>
                 </div>
-                <div className="pt-2 border-t border-amber-500/30 flex justify-end">
+                <div className="pt-2 border-t border-amber-200 flex justify-end">
                   <button
                     type="button"
                     onClick={() => setPriceChangedNotice(null)}
-                    className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded text-[11px] font-semibold border border-amber-500/40 transition-colors"
+                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-semibold transition-colors"
                   >
                     I Confirm the Updated Total
                   </button>
@@ -477,15 +484,15 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Shipping Unconfigured Warning Banner */}
+            {/* Ordering Preparation Notice Banner */}
             {quote && (!quote.serviceability.isConfigured || !quote.serviceability.isServiceable) && (
-              <div className="p-3.5 rounded bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-amber-300">Shipping Unconfigured (Phase 6)</p>
-                  <p className="mt-1 text-[11px] text-gray-300 leading-relaxed">
+                  <p className="font-bold text-amber-900">Online Ordering Being Prepared</p>
+                  <p className="mt-1 text-[11px] text-amber-800 leading-relaxed">
                     {quote.serviceability.message ||
-                      "Carrier integrations are scheduled for Phase 7. Order placement is paused until shipping is activated."}
+                      "Online ordering is currently being prepared. You can continue browsing products and adding items to your cart."}
                   </p>
                 </div>
               </div>
@@ -514,7 +521,7 @@ export default function CheckoutPage() {
               ) : priceChangedNotice ? (
                 <span>Please Confirm Updated Total Above</span>
               ) : !quote?.serviceability.isConfigured || !quote?.serviceability.isServiceable ? (
-                <span>Order Placement Paused (Shipping Unconfigured)</span>
+                <span>Online Ordering Being Prepared</span>
               ) : (
                 <>
                   <span>Place Order</span>
@@ -533,82 +540,82 @@ export default function CheckoutPage() {
 
       {/* Modal for adding address */}
       {showAddressModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-ink-raised border border-gray-800 rounded-card p-6 max-w-md w-full space-y-4">
-            <h3 className="text-base font-bold text-paper">Add Delivery Address</h3>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold text-gray-900">Add Delivery Address</h3>
             {addressError && (
-              <div className="p-3 bg-red-950/20 border border-red-800 text-xs text-red-300 rounded">
+              <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-700 rounded-lg">
                 {addressError}
               </div>
             )}
             <form onSubmit={handleCreateAddress} className="space-y-3 text-xs">
               <div>
-                <label className="block text-gray-400 mb-1">Recipient Name</label>
+                <label className="block text-gray-700 font-medium mb-1">Recipient Name</label>
                 <input
                   type="text"
                   required
                   value={newRecipient}
                   onChange={(e) => setNewRecipient(e.target.value)}
-                  className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                  className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                   placeholder="e.g. Rahul Sharma"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 mb-1">Mobile Phone (10-digit Indian)</label>
+                <label className="block text-gray-700 font-medium mb-1">Mobile Phone (10-digit Indian)</label>
                 <input
                   type="tel"
                   required
                   pattern="^[6-9]\d{9}$"
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                  className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                   placeholder="9876543210"
                 />
               </div>
               <div>
-                <label className="block text-gray-400 mb-1">Street Address</label>
+                <label className="block text-gray-700 font-medium mb-1">Street Address</label>
                 <input
                   type="text"
                   required
                   value={newLine1}
                   onChange={(e) => setNewLine1(e.target.value)}
-                  className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                  className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                   placeholder="Plot No. 42, Sector 18"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-400 mb-1">City</label>
+                  <label className="block text-gray-700 font-medium mb-1">City</label>
                   <input
                     type="text"
                     required
                     value={newCity}
                     onChange={(e) => setNewCity(e.target.value)}
-                    className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                    className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                     placeholder="New Delhi"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 mb-1">State</label>
+                  <label className="block text-gray-700 font-medium mb-1">State</label>
                   <input
                     type="text"
                     required
                     value={newState}
                     onChange={(e) => setNewState(e.target.value)}
-                    className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                    className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                     placeholder="Delhi"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-gray-400 mb-1">PIN Code (6-digit)</label>
+                <label className="block text-gray-700 font-medium mb-1">PIN Code (6-digit)</label>
                 <input
                   type="text"
                   required
                   pattern="^[1-9][0-9]{5}$"
                   value={newPostalCode}
                   onChange={(e) => setNewPostalCode(e.target.value)}
-                  className="w-full bg-ink border border-gray-700 rounded p-2 text-paper"
+                  className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-ember focus:ring-1 focus:ring-ember"
                   placeholder="110001"
                 />
               </div>
@@ -616,7 +623,7 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(false)}
-                  className="px-3 py-1.5 text-gray-400 hover:text-paper"
+                  className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium"
                 >
                   Cancel
                 </button>

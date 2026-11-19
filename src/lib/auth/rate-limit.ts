@@ -82,6 +82,18 @@ export function resetRateLimit(key: string): void {
   localMemoryStore.delete(key);
 }
 
+/**
+ * Checks whether an in-memory key has exceeded max attempts without incrementing the counter.
+ */
+export function isMemoryRateLimitBlocked(key: string, maxAttempts: number): boolean {
+  const now = Date.now();
+  const record = localMemoryStore.get(key);
+  if (!record || now > record.resetAt) {
+    return false;
+  }
+  return record.count >= maxAttempts;
+}
+
 // ==============================================================================
 // 2. Shared PostgreSQL-Backed Distributed Rate Limiter
 // ==============================================================================
@@ -224,5 +236,85 @@ export async function resetSharedRateLimit(
     // Note: If the delete operation fails, the existing record remains in the database.
     // Subsequent requests will continue to evaluate against the remaining rate-limit record,
     // ensuring that reset failures cannot be leveraged to bypass future rate limits.
+  }
+}
+
+/**
+ * Checks whether a shared rate limit key has exceeded max attempts without incrementing the counter.
+ * In protected environments, database failures fail closed.
+ */
+export async function isSharedRateLimitBlocked(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  key: string,
+  maxAttempts: number
+): Promise<boolean> {
+  const isDevOrTest = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  if (!db) {
+    if (!isDevOrTest) {
+      return true; // Fail closed in production
+    }
+    return isMemoryRateLimitBlocked(key, maxAttempts);
+  }
+
+  try {
+    const rows = await db
+      .select({ attempts: rateLimits.attempts, resetAt: rateLimits.resetAt })
+      .from(rateLimits)
+      .where(eq(rateLimits.key, key));
+
+    const row = rows?.[0];
+    if (!row) {
+      return false;
+    }
+    if (new Date(row.resetAt) <= new Date()) {
+      return false;
+    }
+    return row.attempts >= maxAttempts;
+  } catch (err: unknown) {
+    console.error(
+      "[RateLimit] Failed to check shared rate limit status:",
+      err instanceof Error ? err.message : "Internal error"
+    );
+    if (!isDevOrTest) {
+      return true; // Fail closed in production
+    }
+    return isMemoryRateLimitBlocked(key, maxAttempts);
+  }
+}
+
+/**
+ * Decrements a shared rate limit counter by 1 upon a successful operation,
+ * releasing the reserved slot without erasing prior failed attempts.
+ */
+export async function decrementSharedRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  key: string
+): Promise<void> {
+  // In-memory update for dev/test
+  const memRecord = localMemoryStore.get(key);
+  if (memRecord) {
+    memRecord.count = Math.max(0, memRecord.count - 1);
+    if (memRecord.count === 0) {
+      localMemoryStore.delete(key);
+    }
+  }
+
+  if (!db) return;
+
+  try {
+    await db
+      .update(rateLimits)
+      .set({
+        attempts: sql`GREATEST(0, ${rateLimits.attempts} - 1)`,
+        updatedAt: new Date(),
+      })
+      .where(eq(rateLimits.key, key));
+  } catch (err: unknown) {
+    console.error(
+      "[RateLimit] Failed to decrement rate limit record in database:",
+      err instanceof Error ? err.message : "Internal error"
+    );
   }
 }

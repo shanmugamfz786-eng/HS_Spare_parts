@@ -1,11 +1,14 @@
 import "server-only";
-import { eq, and, gt, isNull } from "drizzle-orm";
+import { eq, and, gt, isNull, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { users, sessions, roles, userRoles, rolePermissions, permissions, passwordResetTokens } from "@/lib/db/schema";
 import { hashPassword, verifyPassword, generateSecureToken, hashToken } from "@/lib/security";
 import { SESSION_MAX_AGE_SECONDS, getSessionToken, deleteSessionCookie } from "@/lib/auth/session";
 import { ROLES, DEFAULT_ROLE_PERMISSIONS, RoleKey, PermissionKey } from "@/lib/auth/rbac";
 import type { RegisterInput } from "./schemas";
+import { strongPasswordSchema } from "./schemas";
+import { getEmailDispatcher } from "@/lib/email/dispatcher";
+import type { EmailDispatcher } from "@/lib/email/types";
 
 export interface SafeUser {
   id: string;
@@ -281,11 +284,32 @@ export async function requireUser(): Promise<SafeUser> {
 }
 
 /**
- * Creates a single-use, time-limited password reset token.
- * Returns generic success even if user is not found to prevent account enumeration.
+ * Sentinel timestamp assigned to `usedAt` upon creation.
+ * A reset token is strictly inactive and unredeemable while `usedAt` equals this sentinel.
+ * Only after confirmed successful email dispatch is `usedAt` transitioned to `null` (active/redeemable).
  */
-export async function requestPasswordReset(email: string): Promise<{ success: boolean; token?: string }> {
-  const db = getDb();
+export const TOKEN_PENDING_ACTIVATION_SENTINEL = new Date(0);
+
+export interface RequestPasswordResetOptions {
+  emailDispatcher?: EmailDispatcher;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dbClient?: any;
+}
+
+/**
+ * Creates a single-use, time-limited password reset token and dispatches an email.
+ * - Invalidate prior unused or pending-activation tokens for this user
+ * - Stores newly created token in an INACTIVE state (fail-closed activation model)
+ * - Stores ONLY the SHA-256 token hash (never the raw token)
+ * - Raw token is only held in-memory long enough to construct the reset URL
+ * - Activates the token ONLY after email delivery confirms success: true
+ * - Returns a generic { success: true } response: NEVER returns token, reset URL, or user existence
+ */
+export async function requestPasswordReset(
+  email: string,
+  options?: RequestPasswordResetOptions
+): Promise<{ success: boolean }> {
+  const db = options?.dbClient || getDb();
   if (!db) {
     throw new Error("DATABASE_UNAVAILABLE: Database connection is not configured.");
   }
@@ -295,45 +319,145 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
     where: eq(users.emailNormalized, normalizedEmail),
   });
 
-  // Non-enumerating response
+  // Non-enumerating response: unknown or inactive accounts return generic success
   if (!user || user.status !== "active") {
+    // Perform bounded constant-work dummy hash to balance CPU execution profile
+    // without introducing unbounded delays, expensive password hashing, or DoS risks.
+    const dummy = generateSecureToken(32);
+    hashToken(dummy);
     return { success: true };
   }
 
   const rawToken = generateSecureToken(32);
   const tokenHash = hashToken(rawToken);
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour validity
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour validity
 
-  await db.insert(passwordResetTokens).values({
-    userId: user.id,
-    tokenHash,
-    expiresAt,
-  });
+  // 1. Invalidate any previous unused or pending-activation reset tokens for this user
+  await db
+    .update(passwordResetTokens)
+    .set({ usedAt: now })
+    .where(
+      and(
+        eq(passwordResetTokens.userId, user.id),
+        or(
+          isNull(passwordResetTokens.usedAt),
+          eq(passwordResetTokens.usedAt, TOKEN_PENDING_ACTIVATION_SENTINEL)
+        )
+      )
+    );
 
-  return { success: true, token: rawToken };
+  // 2. Insert newly generated reset token in an INACTIVE state (fail-closed activation model)
+  // The token is inserted with usedAt = TOKEN_PENDING_ACTIVATION_SENTINEL.
+  // In this state, resetPasswordWithToken strictly rejects redemption (as it requires usedAt IS NULL).
+  const inserted = await db
+    .insert(passwordResetTokens)
+    .values({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+      usedAt: TOKEN_PENDING_ACTIVATION_SENTINEL,
+    })
+    .returning({ id: passwordResetTokens.id });
+
+  const insertedTokenId = inserted?.[0]?.id;
+
+  // 3. Dispatch email via provider-independent email abstraction
+  // Note: Network email dispatch is intentionally kept OUTSIDE database transactions.
+  const dispatcher = options?.emailDispatcher || getEmailDispatcher();
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
+  const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(
+    rawToken
+  )}`;
+
+  let dispatchSucceeded = false;
+  try {
+    const deliveryResult = await dispatcher.sendPasswordResetEmail({
+      toEmail: user.emailNormalized,
+      resetUrl,
+      expiresInMinutes: 60,
+    });
+    dispatchSucceeded = Boolean(deliveryResult && deliveryResult.success === true);
+  } catch {
+    dispatchSucceeded = false;
+    // Delivery failure must not crash or leak tokens; log safely without payload details
+    console.error("[Auth] Failed to dispatch password reset email safely.");
+  }
+
+  // 4. FAIL-CLOSED ACTIVATION:
+  // ONLY if email dispatch explicitly confirmed success (success === true),
+  // activate the exact newly created token through an awaited database update.
+  // If dispatch threw an exception, returned false, or provider is unconfigured,
+  // we do NOT activate the token — it remains in the inactive state forever.
+  if (dispatchSucceeded) {
+    try {
+      const conditions = [
+        eq(passwordResetTokens.userId, user.id),
+        eq(passwordResetTokens.tokenHash, tokenHash),
+        eq(passwordResetTokens.usedAt, TOKEN_PENDING_ACTIVATION_SENTINEL),
+        gt(passwordResetTokens.expiresAt, new Date()),
+      ];
+      if (insertedTokenId) {
+        conditions.push(eq(passwordResetTokens.id, insertedTokenId));
+      }
+
+      await db
+        .update(passwordResetTokens)
+        .set({ usedAt: null })
+        .where(and(...conditions));
+    } catch {
+      // Activation database failure: token remains inactive (fail-closed)
+      console.error("[Auth] Failed to activate password reset token after email dispatch.");
+    }
+  }
+
+  // Strictly return generic success: NEVER expose rawToken, URL, or user id
+  return { success: true };
+}
+
+export interface ResetPasswordWithTokenOptions {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dbClient?: any;
 }
 
 /**
  * Resets user password using a verified, unused, unexpired reset token.
  * Enforces atomic single-use consumption in a single transaction:
- * UPDATE password_reset_tokens SET used_at = now WHERE token_hash = :hash AND used_at IS NULL AND expires_at > now
- * If 0 rows match (e.g. concurrent attempt or expired), rejects immediately.
- * Automatically invalidates all existing sessions for the user upon completion.
+ * - Validates new password against strongPasswordSchema on the server
+ * - Atomically marks the token as used (UPDATE ... WHERE used_at IS NULL AND expires_at > now RETURNING id)
+ * - Updates user passwordHash
+ * - Invalidates ALL active sessions for the user (session hijacking defense)
+ * - Revokes any other outstanding unused reset tokens for that user
  */
 export async function resetPasswordWithToken(
   rawToken: string,
-  newPlaintextPass: string
+  newPlaintextPass: string,
+  options?: ResetPasswordWithTokenOptions
 ): Promise<{ success: boolean }> {
-  const db = getDb();
+  // Authoritative server-side password complexity enforcement
+  const passwordValidation = strongPasswordSchema.safeParse(newPlaintextPass);
+  if (!passwordValidation.success) {
+    throw new Error(
+      `WEAK_PASSWORD: ${passwordValidation.error.errors[0]?.message || "Password does not meet complexity requirements."}`
+    );
+  }
+
+  if (!rawToken || typeof rawToken !== "string" || rawToken.trim().length < 32) {
+    throw new Error("INVALID_TOKEN: Password reset token is invalid, expired, or already used.");
+  }
+
+  const db = options?.dbClient || getDb();
   if (!db) {
     throw new Error("DATABASE_UNAVAILABLE: Database connection is not configured.");
   }
 
-  const tokenHash = hashToken(rawToken);
+  const tokenHash = hashToken(rawToken.trim());
   const now = new Date();
   const passwordHash = await hashPassword(newPlaintextPass);
 
-  return await db.transaction(async (tx) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return await db.transaction(async (tx: any) => {
     // 1. Atomic token consumption: only succeeds if usedAt IS NULL and expiresAt > now
     const consumed = await tx
       .update(passwordResetTokens)
@@ -370,6 +494,22 @@ export async function resetPasswordWithToken(
 
     // 3. Invalidate ALL active sessions for this user (session hijacking defense)
     await tx.delete(sessions).where(eq(sessions.userId, targetUserId));
+
+    // 4. Revoke any OTHER outstanding reset tokens for this user in the same transaction
+    await tx
+      .update(passwordResetTokens)
+      .set({
+        usedAt: now,
+      })
+      .where(
+        and(
+          eq(passwordResetTokens.userId, targetUserId),
+          or(
+            isNull(passwordResetTokens.usedAt),
+            eq(passwordResetTokens.usedAt, TOKEN_PENDING_ACTIVATION_SENTINEL)
+          )
+        )
+      );
 
     return { success: true };
   });
