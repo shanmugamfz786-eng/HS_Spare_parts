@@ -5,6 +5,7 @@ import { products, brands, categories, productImages, inventory } from "@/lib/db
 import { siteSettings } from "@/lib/db/schema/admin";
 import { getCurrentUser, getCurrentAdminUser, type SafeUser } from "@/features/auth/service";
 import { resolveCanonicalCategorySlug } from "@/lib/constants/approved-catalogue";
+import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
 import {
   ROLES,
   PERMISSIONS,
@@ -694,13 +695,21 @@ async function resolveCategoryUuid(tx: any, categoryInput: string): Promise<stri
     return found[0].id;
   }
 
-  // Fallback to first available category
-  const first = await tx.select({ id: categories.id }).from(categories).limit(1);
-  if (first[0]?.id) {
-    return first[0].id;
-  }
+  // Auto-insert category into database if not yet present
+  const nav = NAVBAR_CATEGORIES.find((c) => c.slug === trimmed || c.slug === canonSlug);
+  const catName = nav?.name || trimmed.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  throw new Error(`CATEGORY_NOT_FOUND: Unable to resolve category '${categoryInput}' to a valid database record.`);
+  const [created] = await tx
+    .insert(categories)
+    .values({
+      name: catName,
+      slug: canonSlug || trimmed,
+      status: "active",
+      isTopNav: true,
+    })
+    .returning({ id: categories.id });
+
+  return created.id;
 }
 
 /**
