@@ -151,6 +151,7 @@ const searchCache = new Map<string, SearchCacheEntry>();
 
 export function invalidateCatalogueCache(): void {
   searchCache.clear();
+  cachedDbFacets = null;
 }
 
 /**
@@ -332,40 +333,39 @@ async function searchProductsFromDatabase(
       break;
   }
 
-  // Total count query
-  const countResult = await db
-    .select({ total: count() })
-    .from(products)
-    .where(whereClause);
-  const totalCount = Number(countResult[0]?.total ?? 0);
-
   // Pagination calculation
   const offset = (params.page - 1) * params.pageSize;
-  const totalPages = Math.ceil(totalCount / params.pageSize);
 
-  // Fetch product page rows joined with brand and category
-  const rows = await db
-    .select({
-      id: products.id,
-      sku: products.sku,
-      slug: products.slug,
-      name: products.name,
-      priceMinor: products.priceMinor,
-      compareAtPriceMinor: products.compareAtPriceMinor,
-      attributes: products.attributes,
-      brandName: brands.name,
-      brandSlug: brands.slug,
-      categoryName: categories.name,
-      categorySlug: categories.slug,
-      availableQuantity: sql<number>`COALESCE((SELECT SUM(inv.quantity_on_hand - inv.quantity_reserved) FROM ${inventory} inv WHERE inv.product_id = ${products.id}), 0)`,
-    })
-    .from(products)
-    .leftJoin(brands, eq(products.brandId, brands.id))
-    .leftJoin(categories, eq(products.categoryId, categories.id))
-    .where(whereClause)
-    .orderBy(...orderByClause)
-    .limit(params.pageSize)
-    .offset(offset);
+  // Execute Count, Product Rows, and Facets concurrently via Promise.all
+  const [countResult, rows, facets] = await Promise.all([
+    db.select({ total: count() }).from(products).where(whereClause),
+    db
+      .select({
+        id: products.id,
+        sku: products.sku,
+        slug: products.slug,
+        name: products.name,
+        priceMinor: products.priceMinor,
+        compareAtPriceMinor: products.compareAtPriceMinor,
+        attributes: products.attributes,
+        brandName: brands.name,
+        brandSlug: brands.slug,
+        categoryName: categories.name,
+        categorySlug: categories.slug,
+        availableQuantity: sql<number>`COALESCE((SELECT SUM(inv.quantity_on_hand - inv.quantity_reserved) FROM ${inventory} inv WHERE inv.product_id = ${products.id}), 0)`,
+      })
+      .from(products)
+      .leftJoin(brands, eq(products.brandId, brands.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(whereClause)
+      .orderBy(...orderByClause)
+      .limit(params.pageSize)
+      .offset(offset),
+    buildDatabaseFacets(db),
+  ]);
+
+  const totalCount = Number(countResult[0]?.total ?? 0);
+  const totalPages = Math.ceil(totalCount / params.pageSize);
 
   // Map database rows to ProductCardDTOs
   const productDtos: ProductCardDTO[] = (rows as ProductDbRow[]).map((r) => {
@@ -398,9 +398,6 @@ async function searchProductsFromDatabase(
       inStock,
     };
   });
-
-  // Construct search facets (Categories, Brands, Makes)
-  const facets = await buildDatabaseFacets(db);
 
   return {
     products: productDtos,
@@ -678,47 +675,43 @@ async function getProductFromDatabase(
     return null;
   }
 
-  // Fetch images
-  const images = await db
-    .select()
-    .from(productImages)
-    .where(eq(productImages.productId, p.id))
-    .orderBy(desc(productImages.isPrimary), asc(productImages.sortOrder));
-
-  // Fetch variants
-  const variants = await db
-    .select()
-    .from(productVariants)
-    .where(eq(productVariants.productId, p.id));
-
-  // Fetch specifications
-  const specs = await db
-    .select()
-    .from(productSpecifications)
-    .where(eq(productSpecifications.productId, p.id))
-    .orderBy(asc(productSpecifications.sortOrder));
-
-  // Fetch fitments with make & model joins
-  const fitmentRows = await db
-    .select({
-      id: productFitments.id,
-      notes: productFitments.notes,
-      verifiedStatus: productFitments.verifiedStatus,
-      makeName: vehicleMakes.name,
-      makeSlug: vehicleMakes.slug,
-      modelName: vehicleModels.name,
-      modelSlug: vehicleModels.slug,
-      variantGeneration: vehicleVariants.generation,
-      variantEngine: vehicleVariants.engine,
-      variantFuel: vehicleVariants.fuel,
-      yearStart: vehicleVariants.yearStart,
-      yearEnd: vehicleVariants.yearEnd,
-    })
-    .from(productFitments)
-    .innerJoin(vehicleVariants, eq(productFitments.vehicleVariantId, vehicleVariants.id))
-    .innerJoin(vehicleModels, eq(vehicleVariants.modelId, vehicleModels.id))
-    .innerJoin(vehicleMakes, eq(vehicleModels.makeId, vehicleMakes.id))
-    .where(eq(productFitments.productId, p.id));
+  // Fetch images, variants, specs, and fitments concurrently via Promise.all
+  const [images, variants, specs, fitmentRows] = await Promise.all([
+    db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.productId, p.id))
+      .orderBy(desc(productImages.isPrimary), asc(productImages.sortOrder)),
+    db
+      .select()
+      .from(productVariants)
+      .where(eq(productVariants.productId, p.id)),
+    db
+      .select()
+      .from(productSpecifications)
+      .where(eq(productSpecifications.productId, p.id))
+      .orderBy(asc(productSpecifications.sortOrder)),
+    db
+      .select({
+        id: productFitments.id,
+        notes: productFitments.notes,
+        verifiedStatus: productFitments.verifiedStatus,
+        makeName: vehicleMakes.name,
+        makeSlug: vehicleMakes.slug,
+        modelName: vehicleModels.name,
+        modelSlug: vehicleModels.slug,
+        variantGeneration: vehicleVariants.generation,
+        variantEngine: vehicleVariants.engine,
+        variantFuel: vehicleVariants.fuel,
+        yearStart: vehicleVariants.yearStart,
+        yearEnd: vehicleVariants.yearEnd,
+      })
+      .from(productFitments)
+      .innerJoin(vehicleVariants, eq(productFitments.vehicleVariantId, vehicleVariants.id))
+      .innerJoin(vehicleModels, eq(vehicleVariants.modelId, vehicleModels.id))
+      .innerJoin(vehicleMakes, eq(vehicleModels.makeId, vehicleMakes.id))
+      .where(eq(productFitments.productId, p.id)),
+  ]);
 
   const fitmentsDto: VehicleFitmentDTO[] = (fitmentRows as FitmentDbRow[]).map((f) => ({
     id: f.id,
@@ -1062,45 +1055,55 @@ function buildDemoFacets(demoProducts: typeof DEMO_FEATURED_PRODUCTS): FilterFac
   };
 }
 
+interface FacetsCacheEntry {
+  data: FilterFacetsDTO;
+  timestamp: number;
+}
+let cachedDbFacets: FacetsCacheEntry | null = null;
+const FACETS_CACHE_TTL_MS = 60_000; // 60s in-memory cache for ultra-fast taxonomy navigation
+
 async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
+  if (process.env.NODE_ENV !== "test" && cachedDbFacets && Date.now() - cachedDbFacets.timestamp < FACETS_CACHE_TTL_MS) {
+    return cachedDbFacets.data;
+  }
+
   try {
-    const brandRows = await db
-      .select({
-        name: brands.name,
-        slug: brands.slug,
-        count: count(products.id),
-      })
-      .from(brands)
-      .leftJoin(products, eq(brands.id, products.brandId))
-      .groupBy(brands.id, brands.name, brands.slug)
-      .limit(20);
-
-    const categoryRows = await db
-      .select({
-        name: categories.name,
-        slug: categories.slug,
-        count: count(products.id),
-      })
-      .from(categories)
-      .leftJoin(products, eq(categories.id, products.categoryId))
-      .groupBy(categories.id, categories.name, categories.slug)
-      .limit(20);
-
-    const makeRows = await db
-      .select({
-        name: vehicleMakes.name,
-        slug: vehicleMakes.slug,
-      })
-      .from(vehicleMakes)
-      .limit(10);
-
-    const conditionRows = await db
-      .select({
-        condition: sql<string>`${products.attributes}->>'condition'`,
-        count: count(products.id),
-      })
-      .from(products)
-      .groupBy(sql`${products.attributes}->>'condition'`);
+    const [brandRows, categoryRows, makeRows, conditionRows] = await Promise.all([
+      db
+        .select({
+          name: brands.name,
+          slug: brands.slug,
+          count: count(products.id),
+        })
+        .from(brands)
+        .leftJoin(products, eq(brands.id, products.brandId))
+        .groupBy(brands.id, brands.name, brands.slug)
+        .limit(20),
+      db
+        .select({
+          name: categories.name,
+          slug: categories.slug,
+          count: count(products.id),
+        })
+        .from(categories)
+        .leftJoin(products, eq(categories.id, products.categoryId))
+        .groupBy(categories.id, categories.name, categories.slug)
+        .limit(20),
+      db
+        .select({
+          name: vehicleMakes.name,
+          slug: vehicleMakes.slug,
+        })
+        .from(vehicleMakes)
+        .limit(10),
+      db
+        .select({
+          condition: sql<string>`${products.attributes}->>'condition'`,
+          count: count(products.id),
+        })
+        .from(products)
+        .groupBy(sql`${products.attributes}->>'condition'`),
+    ]);
 
     const conditionCountMap = new Map<string, number>();
     for (const row of conditionRows) {
@@ -1109,7 +1112,7 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
       }
     }
 
-    return {
+    const facetsResult: FilterFacetsDTO = {
       brands: (brandRows as FacetCountDbRow[]).map((b) => ({
         label: b.name,
         value: b.slug,
@@ -1143,6 +1146,11 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
       ],
       priceRange: { min: 100, max: 50000 },
     };
+
+    if (process.env.NODE_ENV !== "test") {
+      cachedDbFacets = { data: facetsResult, timestamp: Date.now() };
+    }
+    return facetsResult;
   } catch {
     return {
       categories: [],

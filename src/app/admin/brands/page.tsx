@@ -27,9 +27,11 @@ export default async function AdminBrandsPage() {
     return <AdminAccessDenied />;
   }
 
-  const brands = await getAdminBrands();
-  const categories = await getAdminCategories();
-  const products = await getAdminProducts();
+  const [brands, categories, products] = await Promise.all([
+    getAdminBrands(),
+    getAdminCategories(),
+    getAdminProducts(),
+  ]);
 
   return (
     <div className="space-y-6">

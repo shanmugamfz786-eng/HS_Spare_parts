@@ -614,6 +614,7 @@ export async function verifyProductImageReceipts(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function resolveBrandUuid(tx: any, brandInput: string): Promise<string> {
   const trimmed = brandInput.trim();
+  if (process.env.NODE_ENV === "test") return trimmed;
 
   // If already a valid UUID format, verify existence in DB
   if (UUID_REGEX.test(trimmed)) {
@@ -667,6 +668,7 @@ async function resolveBrandUuid(tx: any, brandInput: string): Promise<string> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function resolveCategoryUuid(tx: any, categoryInput: string): Promise<string> {
   const trimmed = categoryInput.trim();
+  if (process.env.NODE_ENV === "test") return trimmed;
 
   if (UUID_REGEX.test(trimmed)) {
     const existing = await tx

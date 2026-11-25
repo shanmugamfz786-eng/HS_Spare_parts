@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "@/styles/globals.css";
 import { StorefrontChrome } from "@/components/layout/storefront-chrome";
+import { RouteProgressBar } from "@/components/layout/route-progress-bar";
 
 export const metadata: Metadata = {
   title: {
@@ -40,6 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen bg-[#F8F9FA] text-charcoal antialiased flex flex-col selection:bg-ember selection:text-paper">
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         <StorefrontChrome>{children}</StorefrontChrome>
       </body>
     </html>
