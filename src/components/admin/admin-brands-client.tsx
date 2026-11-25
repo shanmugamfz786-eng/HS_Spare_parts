@@ -226,11 +226,7 @@ export function AdminBrandsClient({
   const [brandSearch, setBrandSearch] = useState("");
   const [partsSearch, setPartsSearch] = useState("");
   const [showOnlyGaps, setShowOnlyGaps] = useState(false);
-  const [expandedCategorySlugs, setExpandedCategorySlugs] = useState<Record<string, boolean>>({
-    "body-parts": true,
-    "brake-system": true,
-    "brake": true,
-  });
+  const [expandedCategorySlugs, setExpandedCategorySlugs] = useState<Record<string, boolean>>({});
 
   // Expanded Subcategories cards (to see mapped spare parts directly under subcategory)
   const [expandedSubcategoryCards, setExpandedSubcategoryCards] = useState<Record<string, boolean>>({});
@@ -1035,12 +1031,13 @@ export function AdminBrandsClient({
                             <button
                               type="button"
                               onClick={() => toggleCategoryExpand(cat.slug)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+                              title={isExpanded ? "Collapse Category" : "Expand Subcategories"}
                             >
                               {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-ember" />
+                                <ChevronUp className="w-4 h-4 text-ember" />
                               ) : (
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronDown className="w-4 h-4" />
                               )}
                             </button>
                           </div>
