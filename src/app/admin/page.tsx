@@ -263,7 +263,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Products KPI */}
         <Link
-          href="/admin/products"
+          href="/admin/brands"
           className="group relative bg-white p-5 rounded-2xl border border-gray-200 shadow-xs hover:border-orange-300 hover:shadow-md transition-all flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
@@ -307,7 +307,7 @@ export default async function AdminDashboardPage() {
 
         {/* Stock Alerts KPI */}
         <Link
-          href="/admin/products"
+          href="/admin/brands"
           className="group relative bg-white p-5 rounded-2xl border border-gray-200 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">

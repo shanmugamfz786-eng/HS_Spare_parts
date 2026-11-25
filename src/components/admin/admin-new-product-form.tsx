@@ -44,6 +44,7 @@ export function AdminNewProductForm() {
   const paramMake = searchParams.get("make");
   const paramModel = searchParams.get("model");
   const paramName = searchParams.get("name");
+  const returnTo = searchParams.get("returnTo") || "/admin/brands";
 
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<"publish" | "draft" | null>(null);
@@ -298,8 +299,8 @@ export function AdminNewProductForm() {
               : `Product "${name}" successfully published to catalogue with ${PRODUCT_ORIGIN_LABELS[origin]} and ${condition.toUpperCase()} classification!`,
         });
         setTimeout(() => {
-          router.push("/admin/products");
-        }, 1500);
+          router.push(returnTo);
+        }, 1200);
       } else {
         setFeedback({
           type: "error",
@@ -322,11 +323,11 @@ export function AdminNewProductForm() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-2 mb-1">
             <Link
-              href="/admin/products"
+              href={returnTo}
               className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Products</span>
+              <span>Back to Brands & Categories</span>
             </Link>
             <span className="text-gray-600">•</span>
             <span className="text-xs font-bold text-ember uppercase tracking-wider">

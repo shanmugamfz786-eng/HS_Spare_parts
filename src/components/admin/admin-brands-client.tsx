@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Car,
   Search,
@@ -15,6 +16,7 @@ import {
   Tag,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Layers,
   Grid,
   Package,
@@ -207,6 +209,7 @@ export function AdminBrandsClient({
   initialCategories = [],
   initialProducts = [],
 }: AdminBrandsClientProps) {
+  const searchParams = useSearchParams();
   const [brands, setBrands] = useState<AdminBrandItem[]>(initialBrands);
   const [products] = useState<AdminProductListItem[]>(initialProducts);
 
@@ -228,6 +231,50 @@ export function AdminBrandsClient({
     "brake-system": true,
     "brake": true,
   });
+
+  // Expanded Subcategories cards (to see mapped spare parts directly under subcategory)
+  const [expandedSubcategoryCards, setExpandedSubcategoryCards] = useState<Record<string, boolean>>({});
+  // Selected Subcategory filter per category (to filter the table below to that subcategory)
+  const [selectedSubcategoryFilter, setSelectedSubcategoryFilter] = useState<Record<string, string | null>>({});
+
+  // Synchronize brand and category from URL query parameters (e.g. returning from product creation)
+  useEffect(() => {
+    const paramBrand = searchParams.get("brand");
+    const paramCat = searchParams.get("category");
+
+    if (paramBrand) {
+      const match = brands.find(
+        (b) =>
+          b.slug.toLowerCase() === paramBrand.toLowerCase() ||
+          b.name.toLowerCase() === paramBrand.toLowerCase()
+      );
+      if (match) {
+        setSelectedBrandSlug(match.slug);
+      }
+    }
+
+    if (paramCat) {
+      setExpandedCategorySlugs((prev) => ({
+        ...prev,
+        [paramCat]: true,
+      }));
+    }
+  }, [searchParams, brands]);
+
+  const toggleSubcategoryCard = (catSlug: string, subSlug: string) => {
+    const key = `${catSlug}:${subSlug}`;
+    setExpandedSubcategoryCards((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleSelectSubcategoryFilter = (catSlug: string, subSlug: string | null) => {
+    setSelectedSubcategoryFilter((prev) => ({
+      ...prev,
+      [catSlug]: prev[catSlug] === subSlug ? null : subSlug,
+    }));
+  };
 
   // Modals state for Edit Logo
   const [activeBrandForLogo, setActiveBrandForLogo] = useState<AdminBrandItem | null>(null);
@@ -271,7 +318,12 @@ export function AdminBrandsClient({
     const prodName = (prod.name || "").toLowerCase();
 
     // 1. Direct Part Manufacturer Brand match
-    if (prodBrand.includes(bName) || bName.includes(prodBrand) || prodBrand.includes(bSlug)) {
+    if (
+      prodBrand.includes(bName) ||
+      bName.includes(prodBrand) ||
+      prodBrand.includes(bSlug) ||
+      bSlug.includes(prodBrand)
+    ) {
       return true;
     }
 
@@ -284,7 +336,7 @@ export function AdminBrandsClient({
     }
 
     // 3. Fallback check
-    return prodFitment.includes(bName) || prodName.includes(bName);
+    return prodFitment.includes(bName) || prodName.includes(bName) || prodFitment.includes(bSlug);
   };
 
   // ---------------------------------------------------------------------------
@@ -902,13 +954,34 @@ export function AdminBrandsClient({
 
                     if (showOnlyGaps && hasParts) return null;
 
-                    const filteredCatParts = partsSearch.trim()
-                      ? catParts.filter(
-                          (p) =>
-                            p.name.toLowerCase().includes(partsSearch.toLowerCase()) ||
-                            p.sku.toLowerCase().includes(partsSearch.toLowerCase())
-                        )
-                      : catParts;
+                    const selectedSubSlug = selectedSubcategoryFilter[cat.slug] || null;
+
+                    const filteredCatParts = catParts.filter((p) => {
+                      if (selectedSubSlug) {
+                        const partsForSub = getProductsForSubcategory(cat.slug, selectedSubSlug);
+                        if (!partsForSub.some((subP) => subP.id === p.id)) return false;
+                      }
+                      if (partsSearch.trim()) {
+                        return (
+                          p.name.toLowerCase().includes(partsSearch.toLowerCase()) ||
+                          p.sku.toLowerCase().includes(partsSearch.toLowerCase()) ||
+                          (p.subcategoryId && p.subcategoryId.toLowerCase().includes(partsSearch.toLowerCase()))
+                        );
+                      }
+                      return true;
+                    });
+
+                    const getProductSubcategoryName = (prod: AdminProductListItem) => {
+                      if (!prod.subcategoryId) return "General";
+                      const subs = subcategories;
+                      const found = subs.find(
+                        (s) =>
+                          s.slug.toLowerCase() === prod.subcategoryId?.toLowerCase() ||
+                          s.name.toLowerCase() === prod.subcategoryId?.toLowerCase()
+                      );
+                      if (found) return found.name;
+                      return prod.subcategoryId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+                    };
 
                     return (
                       <div
@@ -952,7 +1025,7 @@ export function AdminBrandsClient({
 
                           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                             <Link
-                              href={`/admin/products/new?category=${cat.slug}&make=${encodeURIComponent(selectedBrand.name)}&brand=${encodeURIComponent(selectedBrandMeta?.oemBrandName || selectedBrand.name)}`}
+                              href={`/admin/products/new?category=${cat.slug}&make=${encodeURIComponent(selectedBrand.name)}&brand=${encodeURIComponent(selectedBrandMeta?.oemBrandName || selectedBrand.name)}&returnTo=${encodeURIComponent(`/admin/brands?brand=${selectedBrand.slug}&category=${cat.slug}`)}`}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 hover:border-ember bg-white hover:bg-orange-50/50 text-gray-700 hover:text-ember transition-all shadow-2xs"
                             >
                               <Plus className="w-3.5 h-3.5 text-ember stroke-[2.5]" />
@@ -992,54 +1065,187 @@ export function AdminBrandsClient({
                                 {subcategories.map((sub, idx) => {
                                   const subParts = getProductsForSubcategory(cat.slug, sub.slug);
                                   const subHas = subParts.length > 0;
+                                  const isSubExpanded = Boolean(expandedSubcategoryCards[`${cat.slug}:${sub.slug}`]);
+                                  const isSelectedFilter = selectedSubcategoryFilter[cat.slug] === sub.slug;
+
+                                  const uploadUrl = `/admin/products/new?category=${cat.slug}&subcategoryId=${sub.slug}&make=${encodeURIComponent(selectedBrand.name)}&brand=${encodeURIComponent(selectedBrandMeta?.oemBrandName || selectedBrand.name)}&returnTo=${encodeURIComponent(`/admin/brands?brand=${selectedBrand.slug}&category=${cat.slug}`)}`;
 
                                   return (
                                     <div
                                       key={sub.slug}
-                                      className={`p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2.5 ${
-                                        subHas
+                                      className={`rounded-xl border transition-all overflow-hidden ${
+                                        isSelectedFilter
+                                          ? "bg-amber-50/40 border-ember ring-2 ring-ember/20 shadow-xs"
+                                          : subHas
                                           ? "bg-white border-emerald-200 shadow-2xs hover:border-emerald-400"
                                           : "bg-white border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/20"
                                       }`}
                                     >
-                                      <div className="min-w-0 flex items-center gap-2">
-                                        <span className="w-5 h-5 rounded-md bg-gray-100 text-gray-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
-                                          {idx + 1}
-                                        </span>
-                                        <div className="min-w-0">
-                                          <span className="font-bold text-xs text-gray-900 block truncate" title={sub.name}>
-                                            {sub.name}
+                                      <div className="p-2.5 flex items-center justify-between gap-2.5">
+                                        <div className="min-w-0 flex items-center gap-2">
+                                          <span className="w-5 h-5 rounded-md bg-gray-100 text-gray-500 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                                            {idx + 1}
                                           </span>
-                                          <span className="text-[10px] text-gray-400 block">
-                                            {subHas
-                                              ? `${subParts.length} mapped ${subParts.length === 1 ? "part" : "parts"}`
-                                              : "Missing component"}
-                                          </span>
+                                          <div className="min-w-0">
+                                            <span className="font-bold text-xs text-gray-900 block truncate" title={sub.name}>
+                                              {sub.name}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 block">
+                                              {subHas
+                                                ? `${subParts.length} mapped ${subParts.length === 1 ? "part" : "parts"}`
+                                                : "Missing component"}
+                                            </span>
+                                          </div>
                                         </div>
-                                      </div>
 
-                                      <div className="shrink-0 flex items-center gap-1">
-                                        {subHas ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                            <span>{subParts.length}</span>
-                                          </span>
-                                        ) : (
+                                        <div className="shrink-0 flex items-center gap-1.5">
+                                          {subHas && (
+                                            <button
+                                              type="button"
+                                              onClick={() => toggleSubcategoryCard(cat.slug, sub.slug)}
+                                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors cursor-pointer"
+                                              title="Click to toggle parts list for this subcategory"
+                                            >
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                              <span>{subParts.length}</span>
+                                              {isSubExpanded ? (
+                                                <ChevronUp className="w-3 h-3 text-emerald-600 ml-0.5" />
+                                              ) : (
+                                                <ChevronDown className="w-3 h-3 text-emerald-600 ml-0.5" />
+                                              )}
+                                            </button>
+                                          )}
+
                                           <Link
-                                            href={`/admin/products/new?category=${cat.slug}&subcategoryId=${sub.slug}&make=${encodeURIComponent(selectedBrand.name)}&brand=${encodeURIComponent(selectedBrandMeta?.oemBrandName || selectedBrand.name)}`}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition-colors shadow-2xs"
+                                            href={uploadUrl}
+                                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all shadow-2xs ${
+                                              subHas
+                                                ? "bg-gray-50 hover:bg-orange-50 text-gray-700 hover:text-ember border border-gray-200 hover:border-ember"
+                                                : "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300"
+                                            }`}
                                             title={`Upload ${sub.name} for ${selectedBrand.name}`}
                                           >
                                             <Plus className="w-3 h-3 stroke-[2.5]" />
                                             <span>Upload</span>
                                           </Link>
-                                        )}
+                                        </div>
                                       </div>
+
+                                      {/* Expanded subcategory parts inline preview drawer */}
+                                      {isSubExpanded && subHas && (
+                                        <div className="px-2.5 pb-2.5 pt-1 border-t border-gray-100 bg-gray-50/60 space-y-1.5">
+                                          <div className="flex items-center justify-between text-[10px] text-gray-500 font-semibold pt-1">
+                                            <span>Parts in {sub.name}:</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleSelectSubcategoryFilter(cat.slug, sub.slug)}
+                                              className="text-ember hover:underline font-bold cursor-pointer"
+                                            >
+                                              {isSelectedFilter ? "Viewing in table" : "Filter table below"}
+                                            </button>
+                                          </div>
+                                          {subParts.map((sp) => (
+                                            <div
+                                              key={sp.id}
+                                              className="flex items-center justify-between p-1.5 rounded-lg bg-white border border-gray-200/80 gap-2 text-xs hover:border-gray-300 transition-colors"
+                                            >
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                <div className="w-7 h-7 rounded bg-gray-50 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                                                  {sp.imageUrl ? (
+                                                    <img src={sp.imageUrl} alt={sp.name} className="w-full h-full object-cover" />
+                                                  ) : (
+                                                    <Package className="w-3.5 h-3.5 text-gray-400" />
+                                                  )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                  <span className="font-bold text-gray-900 block truncate text-[11px]" title={sp.name}>
+                                                    {sp.name}
+                                                  </span>
+                                                  <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
+                                                    <span className="font-mono">{sp.sku}</span>
+                                                    <span>•</span>
+                                                    <span className={sp.condition === "new" ? "text-emerald-700 font-bold" : "text-amber-800 font-bold"}>
+                                                      {sp.condition.toUpperCase()}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              <div className="shrink-0 flex items-center gap-2">
+                                                <span className="font-bold text-gray-900 text-[11px]">
+                                                  ₹{(sp.priceMinor / 100).toLocaleString("en-IN")}
+                                                </span>
+                                                <Link
+                                                  href={`/admin/products/${sp.id}`}
+                                                  className="p-1 rounded text-gray-400 hover:text-ember hover:bg-gray-100 transition-colors"
+                                                  title="Edit Part"
+                                                >
+                                                  <Edit2 className="w-3 h-3" />
+                                                </Link>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 })}
                               </div>
                             </div>
+
+                            {/* Subcategory Filter Pills Row for Table */}
+                            {catParts.length > 0 && (
+                              <div className="flex items-center justify-between flex-wrap gap-2 pt-2 pb-1 border-t border-gray-200/60">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-[11px] font-bold text-gray-600 mr-1 flex items-center gap-1">
+                                    <Filter className="w-3 h-3 text-ember" />
+                                    <span>Filter Table:</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSelectSubcategoryFilter(cat.slug, null)}
+                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                      !selectedSubSlug
+                                        ? "bg-gray-900 text-white shadow-2xs"
+                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                                    }`}
+                                  >
+                                    All Parts ({catParts.length})
+                                  </button>
+                                  {subcategories.map((sub) => {
+                                    const count = getProductsForSubcategory(cat.slug, sub.slug).length;
+                                    if (count === 0) return null;
+                                    const isSelected = selectedSubSlug === sub.slug;
+                                    return (
+                                      <button
+                                        key={sub.slug}
+                                        type="button"
+                                        onClick={() => handleSelectSubcategoryFilter(cat.slug, sub.slug)}
+                                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                          isSelected
+                                            ? "bg-ember text-white shadow-2xs"
+                                            : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                      >
+                                        <span>{sub.name}</span>
+                                        <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${isSelected ? "bg-white/20 text-white" : "bg-emerald-50 text-emerald-700"}`}>
+                                          {count}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                {selectedSubSlug && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSelectSubcategoryFilter(cat.slug, null)}
+                                    className="text-[10px] text-gray-500 hover:text-ember font-bold underline cursor-pointer"
+                                  >
+                                    Clear Filter
+                                  </button>
+                                )}
+                              </div>
+                            )}
 
                             {/* Mapped Parts Table */}
                             {filteredCatParts.length > 0 ? (
@@ -1048,6 +1254,7 @@ export function AdminBrandsClient({
                                   <thead className="bg-gray-50/80 text-gray-500 font-bold border-b border-gray-100">
                                     <tr>
                                       <th className="py-2.5 px-3">Product Name</th>
+                                      <th className="py-2.5 px-3">Subcategory</th>
                                       <th className="py-2.5 px-3">SKU</th>
                                       <th className="py-2.5 px-3">Condition</th>
                                       <th className="py-2.5 px-3">Fitment</th>
@@ -1080,6 +1287,11 @@ export function AdminBrandsClient({
                                               </span>
                                             </div>
                                           </div>
+                                        </td>
+                                        <td className="py-2 px-3">
+                                          <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200/80 max-w-[130px] truncate" title={getProductSubcategoryName(prod)}>
+                                            {getProductSubcategoryName(prod)}
+                                          </span>
                                         </td>
                                         <td className="py-2 px-3 font-mono text-[11px] text-gray-600">
                                           {prod.sku}
@@ -1118,7 +1330,9 @@ export function AdminBrandsClient({
                             ) : (
                               <div className="bg-amber-50/80 border border-dashed border-amber-300 rounded-xl p-4 text-center">
                                 <p className="text-xs font-bold text-amber-900">
-                                  No {cat.name} parts mapped for {selectedBrand.name} yet.
+                                  {selectedSubSlug
+                                    ? `No parts mapped for selected subcategory yet.`
+                                    : `No ${cat.name} parts mapped for ${selectedBrand.name} yet.`}
                                 </p>
                                 <div className="mt-2">
                                   <Link

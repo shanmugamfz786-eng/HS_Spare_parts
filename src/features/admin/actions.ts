@@ -111,6 +111,7 @@ export async function createAdminProductAction(
 
     const res = await createAdminProduct(parsed.data, undefined, { status: targetStatus });
 
+    revalidatePath("/admin/brands");
     revalidatePath("/admin/products");
     if (targetStatus === "active") {
       revalidatePath("/search");
@@ -173,6 +174,7 @@ export async function updateAdminProductAction(
 
     const res = await updateAdminProduct(parsed.data);
 
+    revalidatePath("/admin/brands");
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${parsed.data.id}/edit`);
     revalidatePath(`/products/${parsed.data.id}`);
@@ -202,6 +204,7 @@ export async function publishAdminProductAction(
 
     const res = await publishAdminProduct(id, status);
 
+    revalidatePath("/admin/brands");
     revalidatePath("/admin/products");
     revalidatePath("/search");
     revalidatePath("/categories");
@@ -228,6 +231,7 @@ export async function deleteAdminProductAction(
 
     const res = await deleteAdminProduct(id);
 
+    revalidatePath("/admin/brands");
     revalidatePath("/admin/products");
     revalidatePath("/search");
     revalidatePath("/categories");
