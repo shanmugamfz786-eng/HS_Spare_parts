@@ -28,6 +28,7 @@ import {
   type ProductCondition,
 } from "@/features/catalogue/schemas";
 import { DEMO_FEATURED_PRODUCTS, POPULAR_VEHICLE_MAKES } from "@/lib/constants/demo-catalog";
+import { resolveCanonicalCategorySlug } from "@/lib/constants/approved-catalogue";
 
 type ActiveDb = NonNullable<DbClient>;
 
@@ -41,6 +42,12 @@ interface ProductAttributes {
   visibleWearOrDefects?: string;
   testedStatus?: string;
   warrantyDetails?: string;
+  origin?: "genuine_oem" | "branded_aftermarket";
+  partNumber?: string;
+  oemNumber?: string;
+  subcategoryId?: string;
+  inspectionStatus?: "pending" | "inspected" | "failed";
+  fitments?: unknown[];
 }
 
 export function parseProductCondition(raw?: unknown): ProductCondition {
@@ -135,6 +142,17 @@ function isDatabaseConfigured(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
 }
 
+interface SearchCacheEntry {
+  data: CatalogueSearchResponseDTO;
+  timestamp: number;
+}
+const SEARCH_CACHE_TTL_MS = 120_000; // 2 minutes
+const searchCache = new Map<string, SearchCacheEntry>();
+
+export function invalidateCatalogueCache(): void {
+  searchCache.clear();
+}
+
 /**
  * Searches and filters products based on validated query parameters.
  */
@@ -142,6 +160,14 @@ export async function searchProducts(
   rawParams: RawProductSearchParams
 ): Promise<CatalogueSearchResponseDTO> {
   const params: ValidatedProductSearchParams = productSearchQuerySchema.parse(rawParams);
+
+  const cacheKey = JSON.stringify(params);
+  if (process.env.NODE_ENV !== "test") {
+    const cached = searchCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < SEARCH_CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
 
   // When DATABASE_URL is configured, all operations MUST execute against PostgreSQL
   if (isDatabaseConfigured()) {
@@ -151,7 +177,11 @@ export async function searchProducts(
       return createDatabaseUnavailableResponse(params);
     }
     try {
-      return await searchProductsFromDatabase(db, params);
+      const result = await searchProductsFromDatabase(db, params);
+      if (process.env.NODE_ENV !== "test") {
+        searchCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+      return result;
     } catch (error) {
       console.error("[CatalogueService] Database query error, returning safe unavailable state:", error);
       // Fail closed with a safe database-unavailable state; NEVER fall back silently to demo products
@@ -161,7 +191,11 @@ export async function searchProducts(
 
   // DATABASE_URL is not configured: Demo fallback is strictly restricted to development/test environments
   if (isExplicitDevOrTest()) {
-    return searchProductsFromDemoCatalog(params);
+    const result = searchProductsFromDemoCatalog(params);
+    if (process.env.NODE_ENV !== "test") {
+      searchCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    }
+    return result;
   }
 
   // In production or unknown environments without DATABASE_URL, fail closed
@@ -256,6 +290,28 @@ async function searchProductsFromDatabase(
     conditions.push(sql`${products.attributes}->>'condition' = 'used'`);
   }
 
+  // 8. Product origin filter: Genuine OEM vs Branded Aftermarket
+  if (params.origin) {
+    conditions.push(
+      sql`COALESCE(${products.attributes}->>'origin', CASE WHEN (${products.attributes}->>'isOem')::boolean = true THEN 'genuine_oem' ELSE 'branded_aftermarket' END) = ${params.origin}`
+    );
+  }
+
+  // 9. Subcategory filter
+  if (params.subcategory) {
+    conditions.push(
+      sql`(${products.attributes}->>'subcategoryId' = ${params.subcategory} OR ${products.categoryId} IN (SELECT id FROM ${categories} WHERE slug = ${params.subcategory}))`
+    );
+  }
+
+  // 10. Part number or OEM number direct search
+  if (params.partNumber) {
+    const pTerm = `%${params.partNumber}%`;
+    conditions.push(
+      sql`(${products.attributes}->>'partNumber' ILIKE ${pTerm} OR ${products.attributes}->>'oemNumber' ILIKE ${pTerm} OR ${products.attributes}->>'oemReference' ILIKE ${pTerm} OR ${products.sku} ILIKE ${pTerm})`
+    );
+  }
+
   const whereClause = and(...conditions);
 
   // Sorting logic
@@ -331,6 +387,11 @@ async function searchProductsFromDatabase(
       fitmentHint: attrs?.fitmentHint ?? null,
       oemReference: attrs?.oemReference ?? null,
       condition: parseProductCondition(attrs?.condition),
+      origin:
+        attrs?.origin ??
+        (Boolean(attrs?.isOem) ? "genuine_oem" : "branded_aftermarket"),
+      partNumber: attrs?.partNumber ?? null,
+      oemNumber: attrs?.oemNumber ?? attrs?.oemReference ?? null,
       isDemo: false,
       isOem: Boolean(attrs?.isOem),
       availableStock: availableQty,
@@ -395,9 +456,28 @@ function searchProductsFromDemoCatalog(
   // Category filter
   if (params.category) {
     const cat = params.category.toLowerCase();
+    const canonCat = resolveCanonicalCategorySlug(cat).toLowerCase();
     list = list.filter((p) => {
       const pCat = p.categorySlug.toLowerCase();
-      return pCat === cat || cat.includes(pCat) || pCat.includes(cat);
+      const pCanon = resolveCanonicalCategorySlug(pCat).toLowerCase();
+      return (
+        pCat === cat ||
+        pCanon === canonCat ||
+        pCat === canonCat ||
+        cat === pCanon ||
+        cat.includes(pCat) ||
+        pCat.includes(cat)
+      );
+    });
+  }
+
+  // Subcategory filter
+  if (params.subcategory) {
+    const sub = params.subcategory.toLowerCase();
+    list = list.filter((p) => {
+      if (!p.subcategoryId) return true;
+      const pSub = p.subcategoryId.toLowerCase();
+      return pSub === sub || pSub.includes(sub) || sub.includes(pSub);
     });
   }
 
@@ -413,6 +493,14 @@ function searchProductsFromDemoCatalog(
     list = list.filter((p) => p.condition === "new");
   } else if (params.condition === "used") {
     list = list.filter((p) => p.condition === "used");
+  }
+
+  // Product origin filter (Genuine OEM vs Branded Aftermarket)
+  if (params.origin) {
+    list = list.filter((p) => {
+      const pOrigin = p.origin || (p.isOem ? "genuine_oem" : "branded_aftermarket");
+      return pOrigin === params.origin;
+    });
   }
 
   // Price range filters
@@ -667,6 +755,13 @@ async function getProductFromDatabase(
     fitmentHint: pAttrs?.fitmentHint ?? null,
     oemReference: pAttrs?.oemReference ?? null,
     condition: parseProductCondition(pAttrs?.condition),
+    origin:
+      pAttrs?.origin ??
+      (Boolean(pAttrs?.isOem) ? "genuine_oem" : "branded_aftermarket"),
+    partNumber: pAttrs?.partNumber ?? null,
+    oemNumber: pAttrs?.oemNumber ?? pAttrs?.oemReference ?? null,
+    subcategoryId: pAttrs?.subcategoryId ?? null,
+    inspectionStatus: pAttrs?.inspectionStatus ?? null,
     conditionGrade: pAttrs?.conditionGrade ?? null,
     conditionNotes: pAttrs?.conditionNotes ?? null,
     visibleWearOrDefects: pAttrs?.visibleWearOrDefects ?? null,
@@ -956,6 +1051,10 @@ function buildDemoFacets(demoProducts: typeof DEMO_FEATURED_PRODUCTS): FilterFac
     brands: brandsFacet,
     vehicleMakes: vehicleMakesFacet,
     conditions: conditionsFacet,
+    origins: [
+      { label: "Genuine OEM", value: "genuine_oem", count: demoProducts.filter((p) => p.isOem).length },
+      { label: "Branded Aftermarket", value: "branded_aftermarket", count: demoProducts.filter((p) => !p.isOem).length },
+    ],
     priceRange: {
       min: Math.floor(minPrice / 100),
       max: Math.ceil(maxPrice / 100),
@@ -1038,6 +1137,10 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
           count: conditionCountMap.get("used") ?? 0,
         },
       ],
+      origins: [
+        { label: "Genuine OEM", value: "genuine_oem", count: 0 },
+        { label: "Branded Aftermarket", value: "branded_aftermarket", count: 0 },
+      ],
       priceRange: { min: 100, max: 50000 },
     };
   } catch {
@@ -1048,6 +1151,10 @@ async function buildDatabaseFacets(db: ActiveDb): Promise<FilterFacetsDTO> {
       conditions: [
         { label: "New Spare Parts", value: "new", count: 0 },
         { label: "Pre-Owned Spare Parts", value: "used", count: 0 },
+      ],
+      origins: [
+        { label: "Genuine OEM", value: "genuine_oem", count: 0 },
+        { label: "Branded Aftermarket", value: "branded_aftermarket", count: 0 },
       ],
       priceRange: { min: 0, max: 0 },
     };

@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { formatMoney } from "@/lib/money";
 import { Tag, ShoppingCart, Info, Loader2 } from "lucide-react";
 import { addToCartAction } from "@/features/cart/actions";
 import type { ProductCardDTO } from "@/features/catalogue/schemas";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary-shared";
 
 interface ProductCardProps {
   product: ProductCardDTO;
@@ -50,6 +52,8 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
 
   const cardImage =
     product.primaryImageUrl || CATEGORY_IMAGE_MAP[product.categorySlug] || "/images/brakes.jpg";
+  const optimizedCardImage =
+    getOptimizedCloudinaryUrl(cardImage, "productThumbnail") || cardImage;
 
   return (
     <div
@@ -75,6 +79,16 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
                 </span>
               )}
 
+              {product.origin === "genuine_oem" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm">
+                  GENUINE OEM
+                </span>
+              ) : product.origin === "branded_aftermarket" ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm">
+                  AFTERMARKET
+                </span>
+              ) : null}
+
               {product.isDemo && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-200 border border-blue-500/30">
                   Demo
@@ -91,9 +105,12 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
 
           {/* Photo */}
           <div className="relative w-full h-32 flex items-center justify-center overflow-hidden my-2">
-            <img
-              src={cardImage}
+            <Image
+              src={optimizedCardImage}
               alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              loading="lazy"
               className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
             />
           </div>
@@ -131,12 +148,17 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
             </p>
           )}
 
-          {product.oemReference && (
-            <div className="flex items-center gap-1 text-[10px] text-muted font-mono mb-3">
-              <Tag className="w-3 h-3 text-muted flex-shrink-0" />
-              <span className="truncate">OEM Ref: {product.oemReference}</span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted font-mono mb-2">
+            {product.partNumber && (
+              <span className="truncate">Part: <strong className="text-charcoal">{product.partNumber}</strong></span>
+            )}
+            {(product.oemNumber || product.oemReference) && (
+              <div className="flex items-center gap-1 truncate">
+                <Tag className="w-3 h-3 text-muted flex-shrink-0" />
+                <span className="truncate">OEM: <strong className="text-charcoal">{product.oemNumber || product.oemReference}</strong></span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

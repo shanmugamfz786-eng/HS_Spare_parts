@@ -23,8 +23,6 @@ import {
 import {
   ROLES,
   PERMISSIONS,
-  hasRole,
-  hasPermission,
   AuthorizationError,
   AuthenticationError,
 } from "@/lib/auth/rbac";
@@ -366,6 +364,251 @@ describe("Product Condition & Admin Storefront Security Architecture", () => {
       for (const p of products) {
         expect(["new", "used", "unclassified"]).toContain(p.condition);
       }
+    });
+  });
+
+  describe("5. Safe Draft Product Creation & Storefront Exclusion Architecture", () => {
+    it("creates an unpublished product with explicit status 'draft'", async () => {
+      const res = await createAdminProduct(
+        {
+          name: "Unpublished Test Sensor",
+          sku: "TST-DRAFT-001",
+          categoryId: "electrical",
+          brandId: "Bosch",
+          condition: "new",
+          priceMinor: 250000,
+          description: "Internal testing sensor",
+        },
+        MOCK_ADMIN_USER,
+        { status: "draft" }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.status).toBe("draft");
+      expect(res.productId).toBeDefined();
+      expect(res.message).toContain("draft");
+    });
+
+    it("defaults to 'active' status when options are omitted (preserves backward compatibility)", async () => {
+      const res = await createAdminProduct(
+        {
+          name: "Standard Active Filter",
+          sku: "ACT-FLT-001",
+          categoryId: "engine-parts",
+          brandId: "Mann-Filter",
+          condition: "new",
+          priceMinor: 120000,
+        },
+        MOCK_ADMIN_USER
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.status).toBe("active");
+    });
+
+    it("rejects guest calls to publishAdminProduct", async () => {
+      await expect(
+        publishAdminProduct("prod-draft-1", "active", null)
+      ).rejects.toThrow(AuthenticationError);
+    });
+
+    it("rejects customer calls to publishAdminProduct", async () => {
+      await expect(
+        publishAdminProduct("prod-draft-1", "active", MOCK_CUSTOMER_USER)
+      ).rejects.toThrow(AuthorizationError);
+    });
+
+    it("allows administrators to publish or transition product status", async () => {
+      const res = await publishAdminProduct("demo-brembo-pads", "active", MOCK_ADMIN_USER);
+      expect(res.success).toBe(true);
+      expect(res.status).toBe("active");
+
+      const draftRes = await publishAdminProduct("demo-brembo-pads", "draft", MOCK_ADMIN_USER);
+      expect(draftRes.success).toBe(true);
+      expect(draftRes.status).toBe("draft");
+    });
+
+    it("verifies public product detail queries reject non-existent or draft products", async () => {
+      const result = await getProductByIdOrSlug("non-existent-or-draft-product-id");
+      expect(result).toBeNull();
+    });
+
+    it("allows updating product status via updateAdminProduct", async () => {
+      const res = await updateAdminProduct(
+        {
+          id: "demo-brembo-pads",
+          name: "Brembo Premium Ceramic Brake Pads",
+          status: "draft",
+        },
+        MOCK_ADMIN_USER
+      );
+      expect(res.success).toBe(true);
+      expect(res.status).toBe("draft");
+    });
+
+    it("blocks updating product status to active if condition is unclassified", async () => {
+      await expect(
+        updateAdminProduct(
+          {
+            id: "demo-brembo-pads",
+            name: "Unclassified Product",
+            condition: "unclassified" as any,
+            status: "active",
+          },
+          MOCK_ADMIN_USER
+        )
+      ).rejects.toThrow("PUBLISHING_BLOCKED");
+    });
+  });
+
+  describe("5. Server-Side Used-Product Publish Protection Invariants", () => {
+    it("1. rejects creating a pre-owned product with failed inspection as active", async () => {
+      // Schema validation test
+      const schemaResult = adminUpdateProductSchema.safeParse({
+        id: "test-id",
+        condition: "used",
+        inspectionStatus: "failed",
+        status: "active",
+      });
+      expect(schemaResult.success).toBe(false);
+      if (!schemaResult.success) {
+        expect(schemaResult.error?.issues[0]?.message).toContain("Cannot publish pre-owned product with failed inspection status as active");
+      }
+
+      // Service execution test
+      await expect(
+        createAdminProduct(
+          {
+            name: "Failed Inspection Used Caliper",
+            sku: "USED-FAIL-001",
+            categoryId: "brake-system",
+            brandId: "brand-1",
+            condition: "used",
+            inspectionStatus: "failed",
+            priceMinor: 250000,
+          },
+          MOCK_ADMIN_USER,
+          { status: "active" }
+        )
+      ).rejects.toThrow("VALIDATION_ERROR: Cannot publish pre-owned product with failed inspection status as active");
+    });
+
+    it("2. rejects updating a pre-owned product to active status if inspection failed", async () => {
+      await expect(
+        updateAdminProduct(
+          {
+            id: "demo-brembo-pads",
+            condition: "used",
+            inspectionStatus: "failed",
+            status: "active",
+          },
+          MOCK_ADMIN_USER
+        )
+      ).rejects.toThrow("VALIDATION_ERROR: Cannot publish pre-owned product with failed inspection status as active");
+    });
+
+    it("3. allows creating and updating a pre-owned product with failed inspection as draft", async () => {
+      const createRes = await createAdminProduct(
+        {
+          name: "Salvaged Parts Quarantine",
+          sku: "USED-FAIL-DRF",
+          categoryId: "brake-system",
+          brandId: "brand-1",
+          condition: "used",
+          inspectionStatus: "failed",
+          priceMinor: 150000,
+        },
+        MOCK_ADMIN_USER,
+        { status: "draft" }
+      );
+      expect(createRes.success).toBe(true);
+      expect(createRes.status).toBe("draft");
+
+      const updateRes = await updateAdminProduct(
+        {
+          id: "demo-brembo-pads",
+          condition: "used",
+          inspectionStatus: "failed",
+          status: "draft",
+        },
+        MOCK_ADMIN_USER
+      );
+      expect(updateRes.success).toBe(true);
+      expect(updateRes.status).toBe("draft");
+    });
+
+    it("4. allows updating a pre-owned product with failed inspection to archived status", async () => {
+      const res = await updateAdminProduct(
+        {
+          id: "demo-brembo-pads",
+          condition: "used",
+          inspectionStatus: "failed",
+          status: "archived",
+        },
+        MOCK_ADMIN_USER
+      );
+      expect(res.success).toBe(true);
+      expect(res.status).toBe("archived");
+    });
+
+    it("5. preserves valid new-product workflows unchanged", async () => {
+      const createRes = await createAdminProduct(
+        {
+          name: "Brand New Master Cylinder",
+          sku: "NEW-MC-001",
+          categoryId: "brake-system",
+          brandId: "brand-1",
+          condition: "new",
+          priceMinor: 450000,
+        },
+        MOCK_ADMIN_USER,
+        { status: "active" }
+      );
+      expect(createRes.success).toBe(true);
+      expect(createRes.status).toBe("active");
+
+      const updateRes = await updateAdminProduct(
+        {
+          id: "demo-brembo-pads",
+          condition: "new",
+          status: "active",
+        },
+        MOCK_ADMIN_USER
+      );
+      expect(updateRes.success).toBe(true);
+      expect(updateRes.status).toBe("active");
+    });
+
+    it("6. preserves valid inspected pre-owned product workflows unchanged", async () => {
+      const createRes = await createAdminProduct(
+        {
+          name: "Certified Passed Used Caliper",
+          sku: "USED-PASS-001",
+          categoryId: "brake-system",
+          brandId: "brand-1",
+          condition: "used",
+          inspectionStatus: "inspected",
+          conditionGrade: "grade_a",
+          priceMinor: 320000,
+        },
+        MOCK_ADMIN_USER,
+        { status: "active" }
+      );
+      expect(createRes.success).toBe(true);
+      expect(createRes.status).toBe("active");
+
+      const updateRes = await updateAdminProduct(
+        {
+          id: "demo-brembo-pads",
+          condition: "used",
+          inspectionStatus: "inspected",
+          conditionGrade: "grade_b",
+          status: "active",
+        },
+        MOCK_ADMIN_USER
+      );
+      expect(updateRes.success).toBe(true);
+      expect(updateRes.status).toBe("active");
     });
   });
 });

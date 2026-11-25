@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import type { ProductImageDTO } from "@/features/catalogue/schemas";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary-shared";
 
 interface ProductGalleryProps {
   images?: ProductImageDTO[];
@@ -37,7 +39,10 @@ export function ProductGallery({
     images.length > 0 ? images.map((img) => img.url) : defaultList;
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const activeImageUrl = displayImages[selectedIndex] ?? displayImages[0];
+  const activeImageUrl: string =
+    displayImages[selectedIndex] ?? displayImages[0] ?? defaultList[0] ?? "/images/brakes.jpg";
+  const optimizedActiveImage: string =
+    getOptimizedCloudinaryUrl(activeImageUrl, "productGallery") || activeImageUrl;
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,9 +73,12 @@ export function ProductGallery({
 
         {/* Main Image */}
         <div className="relative w-full h-[280px] sm:h-[360px] flex items-center justify-center">
-          <img
-            src={activeImageUrl}
+          <Image
+            src={optimizedActiveImage}
             alt={productName}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority={selectedIndex === 0}
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
           />
         </div>
@@ -84,6 +92,9 @@ export function ProductGallery({
         <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
           {displayImages.map((imgUrl, idx) => {
             const isSelected = idx === selectedIndex;
+            const optimizedThumb =
+              getOptimizedCloudinaryUrl(imgUrl, "productThumbnail") || imgUrl;
+
             return (
               <button
                 key={idx}
@@ -96,9 +107,12 @@ export function ProductGallery({
                 }`}
                 aria-label={`Select product image view ${idx + 1}`}
               >
-                <img
-                  src={imgUrl}
+                <Image
+                  src={optimizedThumb}
                   alt={`${productName} thumbnail ${idx + 1}`}
+                  fill
+                  sizes="96px"
+                  loading="lazy"
                   className="w-full h-full object-cover object-center"
                 />
               </button>

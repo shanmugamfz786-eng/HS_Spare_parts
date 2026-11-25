@@ -1,5 +1,5 @@
 import React from "react";
-import { getCurrentUser } from "@/features/auth/service";
+import { getCurrentAdminUser } from "@/features/auth/service";
 import { ROLES, PERMISSIONS, hasRole, hasPermission } from "@/lib/auth/rbac";
 import { AdminAccessDenied } from "@/components/admin/admin-access-denied";
 import { AdminNewProductForm } from "@/components/admin/admin-new-product-form";
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function AdminNewProductPage() {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentAdminUser();
 
   const isAuthorized =
     currentUser &&

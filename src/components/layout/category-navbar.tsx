@@ -89,6 +89,7 @@ export function CategoryNavbar() {
                 <div className="flex items-center">
                   <Link
                     href={category.href}
+                    prefetch={true}
                     className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember ${
                       isOpen
                         ? "text-ember bg-ink-raised"
@@ -140,6 +141,7 @@ export function CategoryNavbar() {
                           <Link
                             href={`/categories/${category.slug}/${sub.slug}`}
                             role="menuitem"
+                            prefetch={true}
                             onClick={() => setActiveDropdown(null)}
                             className="block px-4 py-2 text-xs font-medium text-charcoal hover:bg-mist hover:text-ember transition-colors focus-visible:outline-none focus-visible:bg-mist focus-visible:text-ember"
                           >

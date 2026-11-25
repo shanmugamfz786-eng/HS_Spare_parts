@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser, type SafeUser } from "@/features/auth/service";
+import { getCurrentUser, getCurrentAdminUser, type SafeUser } from "@/features/auth/service";
 import {
   ROLES,
   PERMISSIONS,
@@ -57,7 +57,7 @@ export async function assertAdminFulfillmentAccess(
   permission: PermissionKey = PERMISSIONS.ORDERS_FULFILL,
   userOverride?: SafeUser | null
 ) {
-  const currentUser = userOverride !== undefined ? userOverride : await getCurrentUser();
+  const currentUser = userOverride !== undefined ? userOverride : await getCurrentAdminUser();
 
   if (!currentUser) {
     throw new AuthenticationError("Authentication required: Please sign in as an administrator.");

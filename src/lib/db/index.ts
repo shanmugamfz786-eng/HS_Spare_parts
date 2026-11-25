@@ -6,6 +6,10 @@ import * as schema from "./schema";
 let pool: Pool | null = null;
 let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
+export function isDatabaseConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0);
+}
+
 export function getDb() {
   const databaseUrl = process.env.DATABASE_URL;
 

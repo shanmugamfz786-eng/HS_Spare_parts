@@ -8,8 +8,19 @@ import { FeaturedProducts } from "@/components/home/featured-products";
 import { PromotionalBanner } from "@/components/home/promotional-banner";
 import { WhyChooseUs } from "@/components/home/why-choose-us";
 import { Newsletter } from "@/components/home/newsletter";
+import {
+  getStorefrontCategories,
+  getStorefrontBrands,
+  getStorefrontBanners,
+} from "@/server/catalogue/storefront-service";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [categories, brands, banners] = await Promise.all([
+    getStorefrontCategories(),
+    getStorefrontBrands(),
+    getStorefrontBanners(),
+  ]);
+
   return (
     <div className="w-full flex flex-col bg-white">
       {/* 1. Full-Width Dark Hero Banner with Red Car */}
@@ -24,16 +35,16 @@ export default function HomePage() {
       <BenefitsStrip />
 
       {/* 4. Shop by Car Brand */}
-      <ShopByBrand />
+      <ShopByBrand brands={brands} />
 
       {/* 5. Shop by Popular Categories */}
-      <FeaturedCategories />
+      <FeaturedCategories categories={categories} />
 
       {/* 6. Latest Products (Dark Navy Contrast Section) */}
       <FeaturedProducts />
 
       {/* 7. Promotional Panels & Fitment Assistance */}
-      <PromotionalBanner />
+      <PromotionalBanner banners={banners} />
 
       {/* 8. Why Choose HS Spare Parts */}
       <WhyChooseUs />

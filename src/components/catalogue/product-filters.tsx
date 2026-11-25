@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { FilterFacetsDTO } from "@/features/catalogue/schemas";
 import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
-import { POPULAR_VEHICLE_MAKES } from "@/lib/constants/demo-catalog";
+import { APPROVED_VEHICLE_MAKES } from "@/lib/constants/approved-catalogue";
 
 interface ProductFiltersProps {
   facets: FilterFacetsDTO;
@@ -35,6 +35,7 @@ export function ProductFilters({
   const activeSubcategory = searchParams.get("subcategory") || "";
   const activeBrands = searchParams.get("brand")?.split(",").filter(Boolean) || [];
   const activeCondition = searchParams.get("condition") || "";
+  const activeOrigin = searchParams.get("origin") || "";
   const activeMinPrice = searchParams.get("minPrice") || "";
   const activeMaxPrice = searchParams.get("maxPrice") || "";
   const activeMake = searchParams.get("make") || "";
@@ -111,6 +112,7 @@ export function ProductFilters({
       activeSubcategory ||
       activeBrands.length > 0 ||
       activeCondition ||
+      activeOrigin ||
       activeMinPrice ||
       activeMaxPrice ||
       activeMake ||
@@ -148,6 +150,20 @@ export function ProductFilters({
                   onClick={() => updateFilters({ condition: null })}
                   className="hover:text-ember"
                   aria-label="Remove condition filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {activeOrigin && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-medium">
+                <span>Origin: {activeOrigin === "genuine_oem" ? "Genuine OEM" : "Branded Aftermarket"}</span>
+                <button
+                  type="button"
+                  onClick={() => updateFilters({ origin: null })}
+                  className="hover:text-ember"
+                  aria-label="Remove origin filter"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -299,6 +315,48 @@ export function ProductFilters({
         </div>
       </div>
 
+      {/* 0b. Sourcing / Origin Filter */}
+      <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center justify-between">
+          <span>Sourcing / Origin</span>
+        </h3>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => updateFilters({ origin: null })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              !activeOrigin
+                ? "bg-gray-900 text-white border-gray-900 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => updateFilters({ origin: "genuine_oem" })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              activeOrigin === "genuine_oem"
+                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            OEM
+          </button>
+          <button
+            type="button"
+            onClick={() => updateFilters({ origin: "branded_aftermarket" })}
+            className={`py-2 px-1 text-center text-xs font-semibold rounded-lg border transition-all ${
+              activeOrigin === "branded_aftermarket"
+                ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            Aftermarket
+          </button>
+        </div>
+      </div>
+
       {/* 1. Vehicle Fitment Filter Accordion */}
       <div className="rounded-xl bg-white border border-gray-200/90 shadow-sm p-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
@@ -327,7 +385,7 @@ export function ProductFilters({
               className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
             >
               <option value="">All Vehicle Makes</option>
-              {POPULAR_VEHICLE_MAKES.map((m) => (
+              {APPROVED_VEHICLE_MAKES.map((m) => (
                 <option key={m.slug} value={m.slug}>
                   {m.name}
                 </option>
@@ -353,7 +411,7 @@ export function ProductFilters({
                 className="w-full bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-ember"
               >
                 <option value="">All Models</option>
-                {POPULAR_VEHICLE_MAKES.find((m) => m.slug === activeMake)?.models.map((mod) => (
+                {APPROVED_VEHICLE_MAKES.find((m) => m.slug === activeMake)?.models.map((mod) => (
                   <option key={mod.slug} value={mod.slug}>
                     {mod.name}
                   </option>

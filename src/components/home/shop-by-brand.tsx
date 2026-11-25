@@ -1,6 +1,8 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Car } from "lucide-react";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary-shared";
 
 interface BrandItem {
   name: string;
@@ -25,7 +27,15 @@ const POPULAR_BRANDS: BrandItem[] = [
   { name: "Mercedes-Benz", queryParam: "Mercedes-Benz", origin: "Germany", partCount: "1,600+ parts", badge: "MB" },
 ];
 
-export function ShopByBrand() {
+interface ShopByBrandProps {
+  brands?: Array<{
+    name: string;
+    queryParam?: string;
+    logoUrl?: string | null;
+  }>;
+}
+
+export function ShopByBrand({ brands: customBrands }: ShopByBrandProps = {}) {
   return (
     <section className="py-14 sm:py-20 bg-white border-b border-gray-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,16 +65,36 @@ export function ShopByBrand() {
 
         {/* Brands Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-          {POPULAR_BRANDS.map((brand) => (
-            <Link
-              key={brand.name}
-              href={`/search?make=${encodeURIComponent(brand.queryParam)}`}
-              className="bg-[#F8F9FA] hover:bg-white rounded-xl border border-gray-200/90 hover:border-ember p-4 sm:p-5 flex flex-col items-center text-center shadow-xs hover:shadow-md transition-all duration-200 group"
-            >
-              {/* Brand Monogram Emblem */}
-              <div className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center font-black text-sm text-gray-800 shadow-inner group-hover:border-ember group-hover:bg-ember/5 group-hover:text-ember transition-all mb-3">
-                {brand.badge}
-              </div>
+          {POPULAR_BRANDS.map((brand) => {
+            const customMatch = customBrands?.find(
+              (b) =>
+                b.name.toLowerCase() === brand.name.toLowerCase() ||
+                (brand.queryParam && b.queryParam?.toLowerCase() === brand.queryParam.toLowerCase())
+            );
+            const displayLogo = customMatch?.logoUrl;
+
+            return (
+              <Link
+                key={brand.name}
+                href={`/search?make=${encodeURIComponent(brand.queryParam)}`}
+                className="bg-[#F8F9FA] hover:bg-white rounded-xl border border-gray-200/90 hover:border-ember p-4 sm:p-5 flex flex-col items-center text-center shadow-xs hover:shadow-md transition-all duration-200 group"
+              >
+                {/* Brand Monogram Emblem or Custom Cloudinary Logo */}
+                <div className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center font-black text-sm text-gray-800 shadow-inner group-hover:border-ember group-hover:bg-ember/5 group-hover:text-ember transition-all mb-3 overflow-hidden relative">
+                  {displayLogo ? (
+                    <Image
+                      src={getOptimizedCloudinaryUrl(displayLogo, "brandLogo") || displayLogo}
+                      alt={`${brand.name} manufacturer logo`}
+                      width={56}
+                      height={56}
+                      sizes="56px"
+                      loading="lazy"
+                      className="w-full h-full object-contain p-2"
+                    />
+                  ) : (
+                    <span>{brand.badge}</span>
+                  )}
+                </div>
 
               {/* Brand Title */}
               <h3 className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-ember transition-colors leading-tight">
@@ -76,7 +106,8 @@ export function ShopByBrand() {
                 {brand.partCount}
               </span>
             </Link>
-          ))}
+          );
+        })}
         </div>
       </div>
     </section>

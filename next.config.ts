@@ -32,8 +32,20 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   poweredByHeader: false,
+  devIndicators: false,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@neondatabase/serverless",
+      "drizzle-orm",
+      "zod",
+      "clsx",
+      "tailwind-merge",
+      "bcryptjs",
+    ],
+  },
   async headers() {
     return [
       {
@@ -44,6 +56,13 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

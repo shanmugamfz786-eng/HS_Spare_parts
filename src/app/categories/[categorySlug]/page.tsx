@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
+import { NAVBAR_CATEGORIES, resolveCanonicalCategorySlug } from "@/lib/constants/navigation";
 import { searchProducts } from "@/server/catalogue/catalogue-service";
 import type { RawProductSearchParams } from "@/features/catalogue/schemas";
 import { ProductCard } from "@/components/catalogue/product-card";
@@ -34,7 +34,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const { categorySlug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  const category = NAVBAR_CATEGORIES.find((c) => c.slug === categorySlug);
+  const canonicalSlug = resolveCanonicalCategorySlug(categorySlug);
+  const category = NAVBAR_CATEGORIES.find(
+    (c) => c.slug === categorySlug || c.slug === canonicalSlug
+  );
   if (!category) {
     notFound();
   }

@@ -13,7 +13,7 @@ import {
   History,
   Ban,
 } from "lucide-react";
-import { getCurrentUser } from "@/features/auth/service";
+import { getCurrentAdminUser } from "@/features/auth/service";
 import { ROLES, PERMISSIONS, hasRole, hasPermission } from "@/lib/auth/rbac";
 import { formatMoney } from "@/lib/money";
 import { AdminAccessDenied } from "@/components/admin/admin-access-denied";
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: AdminOrderDetailPageProps) {
 
 export default async function AdminOrderDetailPage({ params }: AdminOrderDetailPageProps) {
   const { id } = await params;
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentAdminUser();
 
   const isAuthorized =
     currentUser &&
@@ -94,66 +94,61 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
   const isPaid = order.paymentStatus === "succeeded";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-900 pb-16">
-      {/* Top Admin Header */}
-      <div className="bg-[#090D18] text-white border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Link
-                  href="/admin/orders"
-                  className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Orders List</span>
-                </Link>
-                <span className="text-gray-600">•</span>
-                <span className="text-xs font-mono font-bold text-ember">
-                  {order.orderNumber}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link
+              href="/admin/orders"
+              className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1 font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Orders List</span>
+            </Link>
+            <span className="text-gray-300">•</span>
+            <span className="text-xs font-mono font-bold text-ember">
+              {order.orderNumber}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-xl font-black text-gray-900 tracking-tight">
+              Order #{order.orderNumber}
+            </h1>
+            <div className="flex items-center gap-2">
+              {isPaid ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Payment Succeeded</span>
                 </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                  Order #{order.orderNumber}
-                </h1>
-                <div className="flex items-center gap-2">
-                  {isPaid ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Payment Succeeded</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Payment {order.paymentStatus.toUpperCase()}</span>
-                    </span>
-                  )}
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Payment {order.paymentStatus.toUpperCase()}</span>
+                </span>
+              )}
 
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700 capitalize">
-                    {order.fulfillmentStatus.replace("_", " ")}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-xs text-gray-400">
-              Placed on:{" "}
-              <strong className="text-white">
-                {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </strong>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200 capitalize">
+                {order.fulfillmentStatus.replace("_", " ")}
+              </span>
             </div>
           </div>
         </div>
+
+        <div className="text-xs text-gray-500 self-start sm:self-auto">
+          Placed on:{" "}
+          <strong className="text-gray-900 font-mono">
+            {new Date(order.createdAt).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </strong>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="space-y-6">
         {errorMsg && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-center gap-3 text-xs">
             <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />

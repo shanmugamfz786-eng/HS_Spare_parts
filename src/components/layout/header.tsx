@@ -79,10 +79,11 @@ export function Header() {
             </Link>
             <span className="text-gray-700 hidden sm:inline">|</span>
             <Link
-              href="/admin/products"
-              className="text-gray-400 hover:text-ember transition-colors hidden sm:inline"
+              href="/admin"
+              className="inline-flex items-center gap-1.5 text-ember hover:text-amber-400 font-bold text-xs transition-colors"
             >
-              Admin
+              <ShieldCheck className="w-3.5 h-3.5 text-ember" />
+              <span>Admin Portal</span>
             </Link>
           </div>
         </div>

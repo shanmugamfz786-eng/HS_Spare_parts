@@ -45,6 +45,11 @@ export const productSearchQuerySchema = z.object({
     .optional()
     .transform(sanitizeSearchQuery),
 
+  // Sourcing origin filter: Genuine OEM vs Branded Aftermarket
+  origin: z
+    .enum(["genuine_oem", "branded_aftermarket"])
+    .optional(),
+
   // Category & Subcategory filters
   category: z
     .string()
@@ -229,6 +234,9 @@ export interface ProductCardDTO {
   fitmentHint: string | null;
   oemReference: string | null;
   condition: ProductCondition;
+  origin?: "genuine_oem" | "branded_aftermarket";
+  partNumber?: string | null;
+  oemNumber?: string | null;
   isDemo: boolean;
   isOem: boolean;
   availableStock?: number;
@@ -239,10 +247,13 @@ export interface ProductDetailDTO extends ProductCardDTO {
   shortDescription: string | null;
   description: string | null;
   weightGrams: number | null;
+  subcategoryId?: string | null;
+  subcategoryName?: string | null;
   conditionGrade?: string | null;
   conditionNotes?: string | null;
   visibleWearOrDefects?: string | null;
   testedStatus?: string | null;
+  inspectionStatus?: "pending" | "inspected" | "failed" | null;
   warrantyDetails?: string | null;
   images: ProductImageDTO[];
   variants: ProductVariantDTO[];
@@ -262,6 +273,7 @@ export interface FilterFacetsDTO {
   brands: FacetItemDTO[];
   vehicleMakes: FacetItemDTO[];
   conditions: FacetItemDTO[];
+  origins?: FacetItemDTO[];
   priceRange: {
     min: number;
     max: number;
@@ -282,6 +294,7 @@ export interface CatalogueSearchResponseDTO {
     subcategory?: string;
     brand?: string[];
     condition?: ProductConditionFilter;
+    origin?: "genuine_oem" | "branded_aftermarket";
     minPrice?: number;
     maxPrice?: number;
     make?: string;
@@ -295,3 +308,43 @@ export interface CatalogueSearchResponseDTO {
   isDemoSource: boolean;
   isDatabaseUnavailable?: boolean;
 }
+
+// ==============================================================================
+// Storefront Public Media & Promotional DTOs (Phase C3.1)
+// ==============================================================================
+
+export interface StorefrontCategoryDTO {
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+}
+
+export interface StorefrontBrandDTO {
+  name: string;
+  queryParam: string;
+  logoUrl: string | null;
+}
+
+export interface StorefrontBannerDTO {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  desktopImageUrl: string;
+  mobileImageUrl: string | null;
+  altText: string;
+  linkUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export const storefrontBannerSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1).max(200),
+  subtitle: z.string().max(500).nullable().optional(),
+  desktopImageUrl: z.string().url(),
+  mobileImageUrl: z.string().url().nullable().optional(),
+  altText: z.string().min(1).max(255),
+  linkUrl: z.string().max(500).nullable().optional(),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});

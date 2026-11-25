@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { User, MapPin, Heart, ShoppingBag, LogOut, ArrowRight, Loader2 } from "lucide-react";
+import { User, MapPin, Heart, ShoppingBag, LogOut, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { getCustomerProfileAction } from "@/features/account/actions";
 import { loginAction, registerAction, logoutAction } from "@/features/auth/actions";
 import type { CustomerProfileDTO } from "@/features/account/schemas";
+
+const ADMIN_ROLES = ["administrator", "super_administrator", "catalogue_manager", "order_manager"];
 
 export default function AccountPage() {
   const [profile, setProfile] = useState<CustomerProfileDTO | null>(null);
@@ -39,6 +41,11 @@ export default function AccountPage() {
     startTransition(async () => {
       const result = await loginAction(null, formData);
       if (result.success) {
+        const resData = result.data as { isAuthorizedAdmin?: boolean } | undefined;
+        if (resData?.isAuthorizedAdmin) {
+          window.location.href = "/admin";
+          return;
+        }
         await loadProfile();
       } else {
         setFormError(result.error || "Login failed.");
@@ -104,6 +111,35 @@ export default function AccountPage() {
             <span>Sign Out</span>
           </button>
         </div>
+
+        {/* Administrator Quick Launch Banner */}
+        {profile.roles?.some((r) => ADMIN_ROLES.includes(r)) && (
+          <div className="mb-8 p-5 rounded-2xl bg-[#090D18] border border-gray-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-ember/20 border border-ember/30 flex items-center justify-center text-ember flex-shrink-0">
+                <ShieldCheck className="w-6 h-6 text-ember" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-black text-white">Administrator Access Active</h2>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-ember text-white px-2 py-0.5 rounded-full">
+                    Admin
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Your account has administrative privileges to manage products, categories, orders, and store settings.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/admin"
+              className="btn-primary py-2.5 px-5 text-xs font-bold rounded-xl whitespace-nowrap self-start sm:self-auto flex items-center gap-2 shadow-md hover:scale-[1.02] transition-transform"
+            >
+              <span>Launch Admin Portal</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

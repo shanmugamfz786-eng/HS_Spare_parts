@@ -37,8 +37,15 @@ export function AdminAccessDenied({
 
         <div className="pt-2 flex flex-col gap-2">
           <Link
-            href="/"
+            href="/account/profile"
             className="btn-primary py-2.5 px-4 text-xs font-bold rounded-xl flex items-center justify-center gap-2"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Sign In via Profile Page</span>
+          </Link>
+          <Link
+            href="/"
+            className="btn-secondary py-2.5 px-4 text-xs font-bold rounded-xl flex items-center justify-center gap-2 text-gray-300 hover:text-white"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Storefront</span>

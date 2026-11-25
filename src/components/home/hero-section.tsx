@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Layers } from "lucide-react";
 
@@ -76,11 +77,13 @@ export function HeroSection() {
               <div className="hidden sm:block absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#090D18] via-[#090D18]/40 to-transparent z-10 pointer-events-none" />
 
               {/* Realistic Red Performance Car Image */}
-              <img
+              <Image
                 src="/images/hero-car.jpg"
                 alt="HS Spare Parts Premium Automotive Performance Sedan"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 55vw"
                 className="w-full h-full object-cover lg:object-contain object-center lg:object-right-center select-none drop-shadow-[0_25px_40px_rgba(0,0,0,0.95)]"
-                loading="eager"
               />
             </div>
           </div>

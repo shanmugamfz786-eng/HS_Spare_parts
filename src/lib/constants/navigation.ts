@@ -191,3 +191,8 @@ export const NAVBAR_CATEGORIES: NavCategoryItem[] = [
     subcategories: [], // Must NOT have a dropdown or submenu
   },
 ];
+
+export {
+  CATEGORY_SLUG_ALIASES,
+  resolveCanonicalCategorySlug,
+} from "./approved-catalogue";

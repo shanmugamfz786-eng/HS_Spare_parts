@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { DEMO_FEATURED_PRODUCTS, DemoProduct } from "@/lib/constants/demo-catalog";
 import { formatMoney } from "@/lib/money";
+import { getOptimizedCloudinaryUrl } from "@/lib/cloudinary-shared";
 
 const PRODUCT_IMAGE_MAP: Record<string, string> = {
   "demo-brembo-pads": "/images/brakes.jpg",
@@ -107,6 +109,8 @@ export function FeaturedProducts() {
                   : 0;
 
               const productImage = PRODUCT_IMAGE_MAP[product.id] || "/images/brakes.jpg";
+              const optimizedImage =
+                getOptimizedCloudinaryUrl(productImage, "productThumbnail") || productImage;
 
               return (
                 <div
@@ -115,9 +119,12 @@ export function FeaturedProducts() {
                 >
                   {/* Product Image Stage */}
                   <div className="relative aspect-[4/3] bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800">
-                    <img
-                      src={productImage}
+                    <Image
+                      src={optimizedImage}
                       alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      loading="lazy"
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent pointer-events-none" />
@@ -248,6 +255,8 @@ export function FeaturedProducts() {
                   : 0;
 
               const productImage = PRODUCT_IMAGE_MAP[product.id] || "/images/brakes.jpg";
+              const optimizedImage =
+                getOptimizedCloudinaryUrl(productImage, "productThumbnail") || productImage;
 
               return (
                 <div
@@ -256,9 +265,12 @@ export function FeaturedProducts() {
                 >
                   {/* Product Image Stage */}
                   <div className="relative aspect-[4/3] bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800">
-                    <img
-                      src={productImage}
+                    <Image
+                      src={optimizedImage}
                       alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      loading="lazy"
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent pointer-events-none" />

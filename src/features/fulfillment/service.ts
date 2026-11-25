@@ -59,6 +59,17 @@ export class DatabaseQueryError extends FulfillmentError {
   }
 }
 
+interface OrdersCacheEntry {
+  data: AdminOrderListItemDTO[];
+  timestamp: number;
+}
+const ORDERS_CACHE_TTL_MS = 60_000; // 1 minute in-memory cache
+const ordersCache = new Map<string, OrdersCacheEntry>();
+
+export function invalidateOrdersCache(): void {
+  ordersCache.clear();
+}
+
 export class OrderNotEligibleForDispatchError extends FulfillmentError {
   constructor(message: string) {
     super(message, "ORDER_NOT_ELIGIBLE_FOR_DISPATCH");
@@ -1006,6 +1017,14 @@ export const defaultDrizzleFulfillmentStore: DrizzleFulfillmentStorageAdapter = 
     limit?: number;
     offset?: number;
   }): Promise<AdminOrderListItemDTO[]> {
+    const cacheKey = `admin:orders:${options?.status || "all"}:${options?.limit || 50}:${options?.offset || 0}`;
+    if (process.env.NODE_ENV !== "test") {
+      const cached = ordersCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < ORDERS_CACHE_TTL_MS) {
+        return cached.data;
+      }
+    }
+
     if (isDatabaseConfigured()) {
       const db = getDb();
       if (!db) {
@@ -1037,7 +1056,7 @@ export const defaultDrizzleFulfillmentStore: DrizzleFulfillmentStorageAdapter = 
           );
         }
 
-        return filtered.map((r) => {
+        const result = filtered.map((r) => {
           const snap = (r.shippingAddressSnapshot || {}) as Record<string, unknown>;
           const customerName = String(snap.fullName || r.guestEmail || "Guest Customer");
           const isEligible =
@@ -1059,6 +1078,11 @@ export const defaultDrizzleFulfillmentStore: DrizzleFulfillmentStorageAdapter = 
             isDispatchEligible: isEligible,
           };
         });
+
+        if (process.env.NODE_ENV !== "test") {
+          ordersCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        }
+        return result;
       } catch (err: unknown) {
         if (err instanceof FulfillmentError) throw err;
         throw new DatabaseQueryError("Failed to query orders from database.");

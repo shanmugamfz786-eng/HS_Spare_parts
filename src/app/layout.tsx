@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { StorefrontChrome } from "@/components/layout/storefront-chrome";
 
 export const metadata: Metadata = {
   title: {
@@ -41,11 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen bg-[#F8F9FA] text-charcoal antialiased flex flex-col selection:bg-ember selection:text-paper">
-        <Header />
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
-        <Footer />
+        <StorefrontChrome>{children}</StorefrontChrome>
       </body>
     </html>
   );
