@@ -22,8 +22,6 @@ import {
   DollarSign,
   Camera,
   Layers,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import {
   createAdminProductAction,
@@ -761,9 +759,8 @@ export function AdminNewProductForm() {
               <button
                 type="button"
                 onClick={() => setIsAddingFitmentOpen(!isAddingFitmentOpen)}
-                className="text-xs font-bold text-ember hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-ember hover:underline cursor-pointer inline-block"
               >
-                {isAddingFitmentOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 <span>{isAddingFitmentOpen ? "Close Car Selector" : "+ Add Specific Car Model to Filter"}</span>
               </button>
 
