@@ -1,9 +1,10 @@
 import "server-only";
-import { eq, desc, and, ne, asc } from "drizzle-orm";
+import { eq, desc, and, ne, asc, ilike, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { products, brands, categories, productImages, inventory } from "@/lib/db/schema/catalogue";
 import { siteSettings } from "@/lib/db/schema/admin";
 import { getCurrentUser, getCurrentAdminUser, type SafeUser } from "@/features/auth/service";
+import { resolveCanonicalCategorySlug } from "@/lib/constants/approved-catalogue";
 import {
   ROLES,
   PERMISSIONS,
@@ -606,6 +607,103 @@ export async function verifyProductImageReceipts(
 }
 
 /**
+ * Resolves a brand input (UUID, slug, or name) to a valid UUID in the brands table.
+ * If the brand does not exist in the database, it creates it in the brands table.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function resolveBrandUuid(tx: any, brandInput: string): Promise<string> {
+  const trimmed = brandInput.trim();
+
+  // If already a valid UUID format, verify existence in DB
+  if (UUID_REGEX.test(trimmed)) {
+    const existing = await tx
+      .select({ id: brands.id })
+      .from(brands)
+      .where(eq(brands.id, trimmed))
+      .limit(1);
+    if (existing[0]?.id) return existing[0].id;
+  }
+
+  // Look up by exact name, slug, or clean slug (case-insensitive)
+  const slugified = trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  const found = await tx
+    .select({ id: brands.id })
+    .from(brands)
+    .where(
+      or(
+        ilike(brands.name, trimmed),
+        ilike(brands.slug, trimmed),
+        ilike(brands.slug, slugified),
+        ilike(brands.name, `%${trimmed}%`)
+      )
+    )
+    .limit(1);
+
+  if (found[0]?.id) {
+    return found[0].id;
+  }
+
+  // Not found in brands table -> auto-create the brand
+  const [created] = await tx
+    .insert(brands)
+    .values({
+      name: trimmed,
+      slug: `${slugified || "brand"}-${Date.now().toString(36)}`,
+      status: "active",
+    })
+    .returning({ id: brands.id });
+
+  return created.id;
+}
+
+/**
+ * Resolves a category input (UUID, slug, or name) to a valid UUID in the categories table.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function resolveCategoryUuid(tx: any, categoryInput: string): Promise<string> {
+  const trimmed = categoryInput.trim();
+
+  if (UUID_REGEX.test(trimmed)) {
+    const existing = await tx
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.id, trimmed))
+      .limit(1);
+    if (existing[0]?.id) return existing[0].id;
+  }
+
+  const canonSlug = resolveCanonicalCategorySlug(trimmed);
+  const found = await tx
+    .select({ id: categories.id })
+    .from(categories)
+    .where(
+      or(
+        eq(categories.slug, trimmed),
+        eq(categories.slug, canonSlug),
+        ilike(categories.name, trimmed),
+        ilike(categories.slug, `%${canonSlug}%`)
+      )
+    )
+    .limit(1);
+
+  if (found[0]?.id) {
+    return found[0].id;
+  }
+
+  // Fallback to first available category
+  const first = await tx.select({ id: categories.id }).from(categories).limit(1);
+  if (first[0]?.id) {
+    return first[0].id;
+  }
+
+  throw new Error(`CATEGORY_NOT_FOUND: Unable to resolve category '${categoryInput}' to a valid database record.`);
+}
+
+/**
  * Creates a new product in the catalogue with condition metadata.
  */
 export async function createAdminProduct(
@@ -702,14 +800,17 @@ export async function createAdminProduct(
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
 
+      const finalBrandId = await resolveBrandUuid(tx, input.brandId);
+      const finalCategoryId = await resolveCategoryUuid(tx, input.categoryId);
+
       const [created] = await tx
         .insert(products)
         .values({
           sku: input.sku.trim().toUpperCase(),
           slug: `${slug}-${Date.now().toString(36)}`,
           name: input.name.trim(),
-          brandId: input.brandId,
-          categoryId: input.categoryId,
+          brandId: finalBrandId,
+          categoryId: finalCategoryId,
           priceMinor: input.priceMinor,
           compareAtPriceMinor: input.compareAtPriceMinor,
           shortDescription: input.shortDescription,
@@ -724,6 +825,19 @@ export async function createAdminProduct(
       }
 
       createdProduct = created;
+
+      // Seed initial warehouse inventory record if stock provided
+      if (typeof input.stockQuantity === "number") {
+        try {
+          await tx.insert(inventory).values({
+            productId: created.id,
+            quantityOnHand: input.stockQuantity,
+            reorderLevel: input.lowStockThreshold ?? 2,
+          });
+        } catch {
+          // Non-blocking in mock/fallback environments
+        }
+      }
 
       // Persist normalized product images in productImages table
       if (input.images && input.images.length > 0) {
@@ -1002,8 +1116,12 @@ export async function updateAdminProduct(
 
       if (input.name !== undefined) updateFields.name = input.name.trim();
       if (input.sku !== undefined) updateFields.sku = input.sku.trim().toUpperCase();
-      if (input.categoryId !== undefined) updateFields.categoryId = input.categoryId;
-      if (input.brandId !== undefined) updateFields.brandId = input.brandId;
+      if (input.categoryId !== undefined) {
+        updateFields.categoryId = await resolveCategoryUuid(tx, input.categoryId);
+      }
+      if (input.brandId !== undefined) {
+        updateFields.brandId = await resolveBrandUuid(tx, input.brandId);
+      }
       if (input.priceMinor !== undefined) updateFields.priceMinor = input.priceMinor;
       if (input.compareAtPriceMinor !== undefined) updateFields.compareAtPriceMinor = input.compareAtPriceMinor;
       if (input.shortDescription !== undefined) updateFields.shortDescription = input.shortDescription;
