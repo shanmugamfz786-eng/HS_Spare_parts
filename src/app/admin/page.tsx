@@ -15,7 +15,6 @@ import {
   Sparkles,
   TrendingUp,
   Activity,
-  Layers,
   ExternalLink,
 } from "lucide-react";
 import { getCurrentAdminUser } from "@/features/auth/service";
@@ -314,101 +313,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </Link>
-      </div>
-
-      {/* Quick Creation Operations Hub */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-        <div className="flex items-center justify-between mb-3.5">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-ember" />
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-700">
-              Quick Management Shortcuts
-            </span>
-          </div>
-          <span className="text-[11px] text-gray-400 font-medium">1-click navigation to core workflows</span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link
-            href="/admin/products/new"
-            className="p-3.5 rounded-xl border border-gray-200/90 bg-gray-50/50 hover:bg-orange-50/50 hover:border-orange-300 transition-all group flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-orange-100/70 text-ember flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
-              <Package className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-gray-900 group-hover:text-ember transition-colors flex items-center gap-1">
-                <span className="truncate">Add Product</span>
-                <Plus className="w-3 h-3 text-ember shrink-0" />
-              </div>
-              <div className="text-[10px] text-gray-500 truncate mt-0.5">New SKU & Cloudinary media</div>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/brands"
-            className="p-3.5 rounded-xl border border-gray-200/90 bg-gray-50/50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-all group flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
-              <Tag className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-gray-900 group-hover:text-emerald-600 transition-colors flex items-center gap-1">
-                <span className="truncate">Brands & Categories</span>
-                <ArrowRight className="w-3 h-3 text-emerald-600 shrink-0" />
-              </div>
-              <div className="text-[10px] text-gray-500 truncate mt-0.5">Brand-specific spare parts matrix</div>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/customers"
-            className="p-3.5 rounded-xl border border-gray-200/90 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-300 transition-all group flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
-              <Users className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex items-center gap-1">
-                <span className="truncate">Customer Directory</span>
-                <ArrowRight className="w-3 h-3 text-blue-600 shrink-0" />
-              </div>
-              <div className="text-[10px] text-gray-500 truncate mt-0.5">Account profiles & orders</div>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/orders"
-            className="p-3.5 rounded-xl border border-gray-200/90 bg-gray-50/50 hover:bg-amber-50/50 hover:border-amber-300 transition-all group flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-600 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-gray-900 group-hover:text-amber-600 transition-colors flex items-center gap-1">
-                <span className="truncate">Orders & Dispatch</span>
-                <ArrowRight className="w-3 h-3 text-amber-600 shrink-0" />
-              </div>
-              <div className="text-[10px] text-gray-500 truncate mt-0.5">Carrier fulfillment & tracking</div>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/banners"
-            className="p-3.5 rounded-xl border border-gray-200/90 bg-gray-50/50 hover:bg-purple-50/50 hover:border-purple-300 transition-all group flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-purple-100/70 text-purple-600 flex items-center justify-center font-bold shrink-0 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-gray-900 group-hover:text-purple-600 transition-colors flex items-center gap-1">
-                <span className="truncate">Promotions</span>
-                <Plus className="w-3 h-3 text-purple-600 shrink-0" />
-              </div>
-              <div className="text-[10px] text-gray-500 truncate mt-0.5">Hero slides & banners</div>
-            </div>
-          </Link>
-        </div>
       </div>
 
       {/* Main Split Grid: Recent Orders & Stock Alerts */}
