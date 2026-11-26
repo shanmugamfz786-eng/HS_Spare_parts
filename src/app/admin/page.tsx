@@ -210,53 +210,13 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Top Welcome Card */}
-      <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-50 text-ember border border-orange-200/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-ember animate-pulse" />
-              Executive Operations
-            </span>
-            <span className="text-gray-300">•</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200">
-              <ShieldCheck className="w-3 h-3 text-emerald-600" />
-              Neon DB Live
-            </span>
-            <span className="text-gray-300">•</span>
-            <span className="text-xs text-gray-500 font-medium">HS Spare Parts Commerce Platform</span>
-          </div>
-          <h1 className="text-2xl font-black text-gray-900 mt-2 tracking-tight">
-            Welcome back, {currentUser.name || "Administrator"}
-          </h1>
-          <p className="text-xs text-gray-500 mt-1 max-w-2xl leading-relaxed">
-            Real-time warehouse stock control, customer order dispatch, and catalogue taxonomy synchronized directly from PostgreSQL.
-          </p>
-        </div>
-
-        {/* Action Pill Buttons */}
-        <div className="relative z-10 flex flex-wrap items-center gap-2">
-          <Link
-            href="/admin/products/new"
-            className="btn-primary text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 shadow-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Add Product</span>
-          </Link>
-          <Link
-            href="/admin/brands"
-            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all font-bold hover:border-gray-300 shadow-2xs"
-          >
-            <Tag className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Brands & Categories</span>
-          </Link>
-          <Link
-            href="/admin/banners"
-            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all font-bold hover:border-gray-300 shadow-2xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>Promotional Banners</span>
-          </Link>
-        </div>
+      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+          Welcome back, {currentUser.name || "Administrator"}
+        </h1>
+        <p className="text-xs text-gray-500 mt-1 max-w-2xl leading-relaxed">
+          Real-time warehouse stock control, customer order dispatch, and catalogue taxonomy synchronized directly from PostgreSQL.
+        </p>
       </div>
 
       {/* KPI Cards Grid */}
