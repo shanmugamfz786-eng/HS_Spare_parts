@@ -192,7 +192,33 @@ export const NAVBAR_CATEGORIES: NavCategoryItem[] = [
   },
 ];
 
-export {
+import {
   CATEGORY_SLUG_ALIASES,
   resolveCanonicalCategorySlug,
 } from "./approved-catalogue";
+
+export {
+  CATEGORY_SLUG_ALIASES,
+  resolveCanonicalCategorySlug,
+};
+
+/**
+ * Dynamically registers a custom subcategory into NAVBAR_CATEGORIES.
+ */
+export function registerCustomSubcategory(categorySlug: string, sub: NavSubItem): boolean {
+  const canon = resolveCanonicalCategorySlug(categorySlug);
+  const cat = NAVBAR_CATEGORIES.find(
+    (c) => c.slug === categorySlug || c.slug === canon || c.id === categorySlug
+  );
+  if (!cat) return false;
+  const slugClean = sub.slug.trim().toLowerCase();
+  if (!cat.subcategories.some((s) => s.slug.trim().toLowerCase() === slugClean)) {
+    cat.subcategories.push({
+      name: sub.name.trim(),
+      slug: slugClean,
+      description: sub.description,
+    });
+    return true;
+  }
+  return false;
+}

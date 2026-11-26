@@ -37,6 +37,7 @@ import { AdminSingleImageUploader } from "./admin-single-image-uploader";
 import {
   updateAdminBrandLogoAction,
   createAdminBrandAction,
+  createAdminSubcategoryAction,
 } from "@/features/admin/actions";
 import { CLOUDINARY_FOLDERS } from "@/lib/cloudinary-shared";
 import type {
@@ -44,7 +45,7 @@ import type {
   AdminCategoryItem,
   AdminProductListItem,
 } from "@/features/admin/service";
-import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
+import { NAVBAR_CATEGORIES, type NavCategoryItem } from "@/lib/constants/navigation";
 import {
   APPROVED_CATEGORIES,
   resolveCanonicalCategorySlug,
@@ -291,6 +292,16 @@ export function AdminBrandsClient({
   const [newBrandStorageKey, setNewBrandStorageKey] = useState<string | null>(null);
   const [newBrandUploadReceipt, setNewBrandUploadReceipt] = useState<string | null>(null);
 
+  // Add Subcategory Modal State
+  const [addSubcategoryModalOpen, setAddSubcategoryModalOpen] = useState(false);
+  const [activeCategoryForSub, setActiveCategoryForSub] = useState<NavCategoryItem | null>(null);
+  const [newSubName, setNewSubName] = useState("");
+  const [newSubSlug, setNewSubSlug] = useState("");
+  const [newSubDescription, setNewSubDescription] = useState("");
+  const [isSubmittingSub, setIsSubmittingSub] = useState(false);
+  const [subActionError, setSubActionError] = useState<string | null>(null);
+  const [customSubcategoriesMap, setCustomSubcategoriesMap] = useState<Record<string, Array<{ name: string; slug: string }>>>({});
+
   // ---------------------------------------------------------------------------
   // Helper: Determine Brand Category Group
   // ---------------------------------------------------------------------------
@@ -373,13 +384,18 @@ export function AdminBrandsClient({
         resolveCanonicalCategorySlug(c.slug) === canon ||
         c.id === catSlug
     );
-    if (navMatch?.subcategories && navMatch.subcategories.length > 0) {
-      return navMatch.subcategories;
+    const baseSubs = navMatch?.subcategories && navMatch.subcategories.length > 0
+      ? [...navMatch.subcategories]
+      : (APPROVED_CATEGORIES.find((c) => c.slug === catSlug || c.slug === canon)?.subcategories || []);
+
+    const dynamicAdded = customSubcategoriesMap[catSlug] || customSubcategoriesMap[canon] || [];
+    const combined = [...baseSubs];
+    for (const d of dynamicAdded) {
+      if (!combined.some((s) => s.slug.toLowerCase() === d.slug.toLowerCase())) {
+        combined.push(d);
+      }
     }
-    const appMatch = APPROVED_CATEGORIES.find(
-      (c) => c.slug === catSlug || c.slug === canon
-    );
-    return appMatch?.subcategories || [];
+    return combined;
   };
 
   // Helper: Query products for Category under Selected Brand
@@ -553,6 +569,78 @@ export function AdminBrandsClient({
       setActionError(msg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Add Subcategory Modal Actions
+  // ---------------------------------------------------------------------------
+  const openAddSubcategoryModal = (cat: NavCategoryItem) => {
+    setActiveCategoryForSub(cat);
+    setNewSubName("");
+    setNewSubSlug("");
+    setNewSubDescription("");
+    setSubActionError(null);
+    setAddSubcategoryModalOpen(true);
+  };
+
+  const closeAddSubcategoryModal = () => {
+    setAddSubcategoryModalOpen(false);
+    setActiveCategoryForSub(null);
+    setNewSubName("");
+    setNewSubSlug("");
+    setNewSubDescription("");
+    setSubActionError(null);
+  };
+
+  const handleCreateSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeCategoryForSub) return;
+    if (!newSubName.trim()) {
+      setSubActionError("Please enter a subcategory name.");
+      return;
+    }
+
+    const cleanSlug =
+      newSubSlug.trim() ||
+      newSubName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    setIsSubmittingSub(true);
+    setSubActionError(null);
+
+    try {
+      const res = await createAdminSubcategoryAction({
+        categorySlug: activeCategoryForSub.slug,
+        name: newSubName.trim(),
+        slug: cleanSlug,
+        description: newSubDescription.trim() || undefined,
+      });
+
+      if (!res.success || !res.data) {
+        throw new Error(res.error || "Failed to create subcategory.");
+      }
+
+      const created = { name: res.data.name, slug: res.data.slug };
+      const catSlug = activeCategoryForSub.slug;
+
+      setCustomSubcategoriesMap((prev) => ({
+        ...prev,
+        [catSlug]: [...(prev[catSlug] || []), created],
+      }));
+
+      // Automatically expand category to reveal the new subcategory
+      setExpandedCategorySlugs((prev) => ({
+        ...prev,
+        [catSlug]: true,
+      }));
+
+      setActionSuccess(`Subcategory "${created.name}" created under ${activeCategoryForSub.name}!`);
+      closeAddSubcategoryModal();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Subcategory creation failed.";
+      setSubActionError(msg);
+    } finally {
+      setIsSubmittingSub(false);
     }
   };
 
@@ -1020,13 +1108,18 @@ export function AdminBrandsClient({
                           </div>
 
                           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                            <Link
-                              href={`/admin/products/new?category=${cat.slug}&make=${encodeURIComponent(selectedBrand.name)}&brand=${encodeURIComponent(selectedBrandMeta?.oemBrandName || selectedBrand.name)}&returnTo=${encodeURIComponent(`/admin/brands?brand=${selectedBrand.slug}&category=${cat.slug}`)}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 hover:border-ember bg-white hover:bg-orange-50/50 text-gray-700 hover:text-ember transition-all shadow-2xs"
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openAddSubcategoryModal(cat);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 hover:border-ember bg-white hover:bg-orange-50/50 text-gray-700 hover:text-ember transition-all shadow-2xs cursor-pointer"
+                              title={`Create new subcategory under ${cat.name}`}
                             >
                               <Plus className="w-3.5 h-3.5 text-ember stroke-[2.5]" />
-                              <span>Add {cat.name}</span>
-                            </Link>
+                              <span>Add Subcategory</span>
+                            </button>
 
                             <button
                               type="button"
@@ -1638,6 +1731,126 @@ export function AdminBrandsClient({
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Create Brand</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* ADD SUBCATEGORY MODAL */}
+      {/* ===================================================================== */}
+      {addSubcategoryModalOpen && activeCategoryForSub && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-ember/10 flex items-center justify-center text-ember font-bold">
+                  <FolderTree className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 tracking-tight">
+                    Add Subcategory
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    Create new component group under <strong>{activeCategoryForSub.name}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeAddSubcategoryModal}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {subActionError && (
+              <div className="flex items-center gap-2 p-3 mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{subActionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateSubcategory} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Parent Category
+                </label>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-800 flex items-center gap-2 select-none">
+                  <span className="w-2 h-2 rounded-full bg-ember" />
+                  <span>{activeCategoryForSub.name}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Subcategory Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newSubName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewSubName(val);
+                    if (!newSubSlug || newSubSlug === newSubName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")) {
+                      setNewSubSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+                    }
+                  }}
+                  placeholder="e.g. Drive Shaft / Axle Shaft"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ember/20 focus:border-ember"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  URL Slug
+                </label>
+                <input
+                  type="text"
+                  value={newSubSlug}
+                  onChange={(e) => setNewSubSlug(e.target.value)}
+                  placeholder="e.g. drive-shaft-axle-shaft"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ember/20 focus:border-ember"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Route: /categories/{activeCategoryForSub.slug}/{newSubSlug || "..."}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Description <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  value={newSubDescription}
+                  onChange={(e) => setNewSubDescription(e.target.value)}
+                  rows={2}
+                  placeholder="Short note about components in this subcategory..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ember/20 focus:border-ember resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={closeAddSubcategoryModal}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingSub || !newSubName.trim()}
+                  className="btn-primary text-xs py-2 px-5 rounded-xl font-bold flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingSub && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>+ Create Subcategory</span>
                 </button>
               </div>
             </form>

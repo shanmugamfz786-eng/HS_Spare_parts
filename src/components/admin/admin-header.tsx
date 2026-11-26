@@ -33,7 +33,6 @@ export function AdminHeader({ user, onOpenSidebar }: AdminHeaderProps) {
     if (path.startsWith("/admin/orders/")) return "Order Details";
     if (path.startsWith("/admin/orders")) return "Orders & Fulfillment";
     if (path.startsWith("/admin/customers")) return "Customers";
-    if (path.startsWith("/admin/banners")) return "Promotional Banners";
     if (path.startsWith("/admin/settings")) return "Store Settings";
     if (path.startsWith("/admin/profile")) return "Admin Profile & Security";
     if (path.startsWith("/admin/logs")) return "Activity Logs";

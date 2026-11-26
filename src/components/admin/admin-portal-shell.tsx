@@ -20,7 +20,6 @@ const ROUTE_LABELS: Record<string, string> = {
   "/admin/brands": "Brands & Categories Directory",
   "/admin/orders": "Orders & Fulfillment",
   "/admin/customers": "Customer Accounts",
-  "/admin/banners": "Promotional Banners",
   "/admin/settings": "Store Settings",
   "/admin/profile": "Profile & Security",
   "/admin/logs": "Activity Logs",

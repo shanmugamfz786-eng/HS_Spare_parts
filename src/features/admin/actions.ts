@@ -23,6 +23,8 @@ import {
   getAdminCategories,
   getAdminCategoryById,
   createAdminCategory,
+  createAdminSubcategory,
+  type AdminCreateSubcategoryInput,
   updateAdminCategoryImage,
   getAdminBrands,
   getAdminBrandById,
@@ -414,6 +416,28 @@ export async function createAdminCategoryAction(
   }
 }
 
+export async function createAdminSubcategoryAction(
+  input: AdminCreateSubcategoryInput
+): Promise<AdminActionResult<{ name: string; slug: string; categorySlug: string }>> {
+  try {
+    const result = await createAdminSubcategory(input);
+
+    revalidatePath("/admin/brands");
+    revalidatePath("/categories");
+    revalidatePath(`/categories/${input.categorySlug}`);
+    revalidatePath("/");
+
+    return { success: true, data: result };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to create subcategory.";
+    return {
+      success: false,
+      error: message,
+      isUnauthorized: isAuthErrorMessage(message),
+    };
+  }
+}
+
 export async function getAdminBrandsAction(): Promise<AdminActionResult<AdminBrandItem[]>> {
   try {
     const data = await getAdminBrands();
@@ -516,7 +540,6 @@ export async function updateAdminBannersAction(
 
     const result = await updateAdminBanners(parsed.data);
 
-    revalidatePath("/admin/banners");
     revalidatePath("/");
 
     return { success: true, data: result };

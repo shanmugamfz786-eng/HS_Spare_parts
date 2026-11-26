@@ -5,7 +5,7 @@ import { products, brands, categories, productImages, inventory } from "@/lib/db
 import { siteSettings } from "@/lib/db/schema/admin";
 import { getCurrentUser, getCurrentAdminUser, type SafeUser } from "@/features/auth/service";
 import { resolveCanonicalCategorySlug } from "@/lib/constants/approved-catalogue";
-import { NAVBAR_CATEGORIES } from "@/lib/constants/navigation";
+import { NAVBAR_CATEGORIES, registerCustomSubcategory } from "@/lib/constants/navigation";
 import {
   ROLES,
   PERMISSIONS,
@@ -1749,6 +1749,105 @@ export async function createAdminCategory(
     success: true,
     category: newCat,
     isDemo: true,
+  };
+}
+
+export interface AdminCreateSubcategoryInput {
+  categorySlug: string;
+  name: string;
+  slug?: string;
+  description?: string;
+}
+
+/**
+ * Creates a new subcategory under an existing parent category.
+ * Dynamically registers into NAVBAR_CATEGORIES and persists to PostgreSQL / siteSettings.
+ */
+export async function createAdminSubcategory(
+  input: AdminCreateSubcategoryInput,
+  userOverride?: SafeUser | null
+): Promise<{ success: boolean; name: string; slug: string; categorySlug: string }> {
+  await assertAdminCatalogueAccess(PERMISSIONS.CATALOGUE_WRITE, userOverride);
+
+  if (!input.name || input.name.trim().length === 0) {
+    throw new Error("Subcategory name is required.");
+  }
+  if (!input.categorySlug || input.categorySlug.trim().length === 0) {
+    throw new Error("Parent category slug is required.");
+  }
+
+  const cleanName = input.name.trim();
+  const cleanSlug =
+    input.slug?.trim() ||
+    cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  registerCustomSubcategory(input.categorySlug, {
+    name: cleanName,
+    slug: cleanSlug,
+    description: input.description?.trim(),
+  });
+
+  if (isDatabaseConfigured()) {
+    const db = getDb();
+    if (db) {
+      try {
+        const parentId = await resolveCategoryUuid(db, input.categorySlug);
+
+        // Check if subcategory row already exists in DB
+        const existing = await db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(eq(categories.slug, cleanSlug))
+          .limit(1);
+
+        if (!existing[0]?.id) {
+          await db.insert(categories).values({
+            name: cleanName,
+            slug: cleanSlug,
+            parentId,
+            description: input.description?.trim() || null,
+            status: "active",
+            sortOrder: 50,
+          });
+        }
+
+        // Persist in siteSettings custom_subcategories for cross-session hydration
+        const existingSetting = await db
+          .select({ value: siteSettings.value })
+          .from(siteSettings)
+          .where(eq(siteSettings.key, "custom_subcategories"))
+          .limit(1);
+
+        const currentList = Array.isArray(existingSetting[0]?.value)
+          ? (existingSetting[0].value as Array<{ categorySlug: string; name: string; slug: string }>)
+          : [];
+
+        if (!currentList.some((s) => s.slug === cleanSlug && s.categorySlug === input.categorySlug)) {
+          currentList.push({ categorySlug: input.categorySlug, name: cleanName, slug: cleanSlug });
+          if (existingSetting[0]) {
+            await db
+              .update(siteSettings)
+              .set({ value: currentList, updatedAt: new Date() })
+              .where(eq(siteSettings.key, "custom_subcategories"));
+          } else {
+            await db.insert(siteSettings).values({
+              key: "custom_subcategories",
+              value: currentList,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[Admin Subcategory] DB persistence notice:", err);
+      }
+    }
+  }
+
+  invalidateAdminCache("categories");
+  return {
+    success: true,
+    name: cleanName,
+    slug: cleanSlug,
+    categorySlug: input.categorySlug,
   };
 }
 

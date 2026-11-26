@@ -13,8 +13,6 @@ import {
   ShieldCheck,
   FolderTree,
   Sparkles,
-  TrendingUp,
-  Activity,
   ExternalLink,
 } from "lucide-react";
 import { getCurrentAdminUser } from "@/features/auth/service";
@@ -484,58 +482,6 @@ export default async function AdminDashboardPage() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Operational Jump Cards at Bottom */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3.5">
-          System Administration & Operations
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link
-            href="/admin/products"
-            className="p-3.5 rounded-xl border border-gray-200 hover:border-ember hover:bg-orange-50/20 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-orange-100 text-ember flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-              <Package className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-gray-900">Products Catalogue</div>
-            <div className="text-[11px] text-gray-400">Manage SKUs & pricing</div>
-          </Link>
-
-          <Link
-            href="/admin/customers"
-            className="p-3.5 rounded-xl border border-gray-200 hover:border-ember hover:bg-orange-50/20 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-              <Users className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-gray-900">Customer Directory</div>
-            <div className="text-[11px] text-gray-400">Roles & accounts</div>
-          </Link>
-
-          <Link
-            href="/admin/logs"
-            className="p-3.5 rounded-xl border border-gray-200 hover:border-ember hover:bg-orange-50/20 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-              <Activity className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-gray-900">Activity & Audit Trail</div>
-            <div className="text-[11px] text-gray-400">Security event ledger</div>
-          </Link>
-
-          <Link
-            href="/admin/settings"
-            className="p-3.5 rounded-xl border border-gray-200 hover:border-ember hover:bg-orange-50/20 transition-all text-left group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-orange-100 text-ember flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-gray-900">System Architecture</div>
-            <div className="text-[11px] text-gray-400">Neon DB & Cloudinary</div>
-          </Link>
         </div>
       </div>
     </div>
